@@ -1,26 +1,28 @@
 package repo
 
 import (
-	"log"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"log"
 )
 
 // StringCacheDBEntry is a contract which is serialized to BSON and saved in MongoDB.
-type StringCacheDBEntry struct{
-	Key string
-	Value string
+type StringCacheDBEntry struct {
+	Key         string
+	Value       string
 	ExpireAfter int64
-	Added int64
-	Updated int64
+	Added       int64
+	Updated     int64
 }
 
-type StringCacheRepository struct{
-	Host string
-	DBName string
+// StringCacheRepository for persisting cache entries to MongoDB.
+type StringCacheRepository struct {
+	Host    string
+	DBName  string
 	ColName string
 }
 
+// GetAll returns cache snapshot from DB.
 func (r *StringCacheRepository) GetAll() []StringCacheDBEntry {
 	session, err := mgo.Dial(r.Host)
 	if err != nil {
@@ -36,6 +38,7 @@ func (r *StringCacheRepository) GetAll() []StringCacheDBEntry {
 	return result
 }
 
+// SaveAll saves cache snapshot to DB.
 func (r *StringCacheRepository) SaveAll(newEntries []StringCacheDBEntry, updatedEntries []StringCacheDBEntry) {
 	session, err := mgo.Dial(r.Host)
 	if err != nil {

@@ -1,20 +1,20 @@
 package cache
 
-import(
+import (
 	"time"
 )
 
 // StringCacheEntry is a string cache data item stored in the memory cache.
-type StringCacheEntry struct{
-	Value string
+type StringCacheEntry struct {
+	Value       string
 	ExpireAfter int64
-	Added int64
-	Updated int64
-	Persisted bool
+	Added       int64
+	Updated     int64
+	Persisted   bool
 }
 
 // StringCache is a single-thread in-memory cache based on map[string]string.
-type StringCache struct{
+type StringCache struct {
 	Map map[string]StringCacheEntry
 }
 
@@ -40,7 +40,7 @@ func (c *StringCache) TryAdd(key string, value string, ttl time.Duration) bool {
 		if ttl > 0 {
 			expireAfter = nowTime.Add(ttl).Unix()
 		}
-		c.Map[key] = StringCacheEntry{ Value: value, Updated: now, Added: now, ExpireAfter: expireAfter }
+		c.Map[key] = StringCacheEntry{Value: value, Updated: now, Added: now, ExpireAfter: expireAfter}
 	}
 	return !ok
 }
@@ -69,11 +69,11 @@ func (c *StringCache) TryUpdate(key string, newValue string, originalValue strin
 	v, ok := c.getValueWithExpiration(key)
 	if ok && v.Value == originalValue {
 		entry := StringCacheEntry{
-			Value: newValue,
-			Added: v.Added,
+			Value:       newValue,
+			Added:       v.Added,
 			ExpireAfter: v.ExpireAfter,
-			Persisted: v.Persisted,
-			Updated: time.Now().Unix()}
+			Persisted:   v.Persisted,
+			Updated:     time.Now().Unix()}
 		c.Map[key] = entry
 		return true, v.Value
 	}
@@ -85,8 +85,8 @@ func (c *StringCache) GetKeys() []string {
 	var keySlice []string
 	now := time.Now().Unix()
 	for key, v := range c.Map {
-		if (now <= v.ExpireAfter) {
-    	keySlice = append(keySlice, key)
+		if now <= v.ExpireAfter {
+			keySlice = append(keySlice, key)
 		}
 	}
 	if keySlice == nil {
@@ -102,7 +102,7 @@ func (c *StringCache) getValueWithExpiration(key string) (StringCacheEntry, bool
 			return v, ok // no expiration
 		}
 		now := time.Now().Unix()
-		if (now > v.ExpireAfter) {
+		if now > v.ExpireAfter {
 			delete(c.Map, key)
 			return v, false // expired
 		}

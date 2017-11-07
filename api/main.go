@@ -1,19 +1,19 @@
 package main
 
 import (
-	"time"
 	"fmt"
-	"os"
-  "os/signal"
-  "log"
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/VitalKrasilnikau/memcache/api/contracts"
+	_ "github.com/VitalKrasilnikau/memcache/api/docs"
+	"github.com/VitalKrasilnikau/memcache/core/actors"
 	"github.com/gin-gonic/gin"
-	"net/http"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
-	_ "github.com/VitalKrasilnikau/memcache/api/docs"
-	"github.com/VitalKrasilnikau/memcache/api/contracts"
-	"github.com/VitalKrasilnikau/memcache/core/actors"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"time"
 )
 
 // GetGetStringCacheKeyHandler API which gets string cache entry by key.
@@ -25,23 +25,23 @@ import (
 // @Failure 500 {object} contracts.ErrorContract "server error"
 // @Failure 404 {object} contracts.ErrorContract "key was not found"
 // @Router /api/string/{new-key} [get]
-func GetGetStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {	
+func GetGetStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Param("key")
-		res, e := pid.RequestFuture(act.GetStringCacheKeyMessage{Key: key}, 50 * time.Millisecond).Result()
+		res, e := pid.RequestFuture(act.GetStringCacheKeyMessage{Key: key}, 50*time.Millisecond).Result()
 		if e == nil {
 			s, ok := res.(act.GetStringCacheKeyReply)
 			if ok {
-				if (s.Success) {
-					c.JSON(http.StatusOK, contracts.StringCacheValueContract{ Key: s.Key, Value: s.Value })
+				if s.Success {
+					c.JSON(http.StatusOK, contracts.StringCacheValueContract{Key: s.Key, Value: s.Value})
 				} else {
-					c.JSON(http.StatusNotFound, contracts.ErrorContract{ Status: fmt.Sprintf("key '%s' was not found", key) })
+					c.JSON(http.StatusNotFound, contracts.ErrorContract{Status: fmt.Sprintf("key '%s' was not found", key)})
 				}
 			} else {
-				c.JSON(http.StatusInternalServerError, contracts.ErrorContract{ Status: "can't parse data" })
+				c.JSON(http.StatusInternalServerError, contracts.ErrorContract{Status: "can't parse data"})
 			}
 		} else {
-			c.JSON(http.StatusInternalServerError, contracts.ErrorContract{ Status: e.Error() })
+			c.JSON(http.StatusInternalServerError, contracts.ErrorContract{Status: e.Error()})
 		}
 	}
 }
@@ -55,23 +55,23 @@ func GetGetStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 // @Failure 500 {object} contracts.ErrorContract "server error"
 // @Failure 404 {object} contracts.ErrorContract "key was not found"
 // @Router /api/string/{key} [delete]
-func GetDeleteStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {	
+func GetDeleteStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Param("key")
-		res, e := pid.RequestFuture(act.DeleteStringCacheKeyMessage{Key: key}, 50 * time.Millisecond).Result()
+		res, e := pid.RequestFuture(act.DeleteStringCacheKeyMessage{Key: key}, 50*time.Millisecond).Result()
 		if e == nil {
 			s, ok := res.(act.DeleteStringCacheKeyReply)
 			if ok {
-				if (s.Success) {
+				if s.Success {
 					c.String(http.StatusNoContent, "")
 				} else {
-					c.JSON(http.StatusNotFound, contracts.ErrorContract{ Status: fmt.Sprintf("key '%s' was not found", key) })
+					c.JSON(http.StatusNotFound, contracts.ErrorContract{Status: fmt.Sprintf("key '%s' was not found", key)})
 				}
 			} else {
-				c.JSON(http.StatusInternalServerError, contracts.ErrorContract{ Status: "can't parse data" })
+				c.JSON(http.StatusInternalServerError, contracts.ErrorContract{Status: "can't parse data"})
 			}
 		} else {
-			c.JSON(http.StatusInternalServerError, contracts.ErrorContract{ Status: e.Error() })
+			c.JSON(http.StatusInternalServerError, contracts.ErrorContract{Status: e.Error()})
 		}
 	}
 }
@@ -85,16 +85,16 @@ func GetDeleteStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 // @Router /api/string [get]
 func GetGetStringCacheKeysHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
-		res, e := pid.RequestFuture(act.GetStringCacheKeysMessage{}, 50 * time.Millisecond).Result()
+		res, e := pid.RequestFuture(act.GetStringCacheKeysMessage{}, 50*time.Millisecond).Result()
 		if e == nil {
 			s, ok := res.(act.GetStringCacheKeysReply)
 			if ok {
-				c.JSON(http.StatusOK, contracts.StringCacheKeysContract{ Keys: s.Keys })
+				c.JSON(http.StatusOK, contracts.StringCacheKeysContract{Keys: s.Keys})
 			} else {
-				c.JSON(http.StatusInternalServerError, contracts.ErrorContract{ Status: "can't parse data" })
+				c.JSON(http.StatusInternalServerError, contracts.ErrorContract{Status: "can't parse data"})
 			}
 		} else {
-			c.JSON(http.StatusInternalServerError, contracts.ErrorContract{ Status: e.Error() })
+			c.JSON(http.StatusInternalServerError, contracts.ErrorContract{Status: e.Error()})
 		}
 	}
 }
@@ -113,23 +113,23 @@ func GetPostStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 		var json contracts.NewStringCacheValueContract
 		if err := c.ShouldBindJSON(&json); err == nil {
 			message := act.PostStringCacheKeyMessage{Key: json.Key, Value: json.Value, Ttl: parseDurationFromJSON(json.TTL)}
-			res, e := pid.RequestFuture(message, 50 * time.Millisecond).Result()
+			res, e := pid.RequestFuture(message, 50*time.Millisecond).Result()
 			if e == nil {
 				s, ok := res.(act.PostStringCacheKeyReply)
 				if ok {
-					if (s.Success) {
+					if s.Success {
 						c.String(http.StatusCreated, "")
 					} else {
-						c.JSON(http.StatusBadRequest, contracts.ErrorContract{ Status: fmt.Sprintf("key '%s' was already used", json.Key) })
+						c.JSON(http.StatusBadRequest, contracts.ErrorContract{Status: fmt.Sprintf("key '%s' was already used", json.Key)})
 					}
 				} else {
-					c.JSON(http.StatusInternalServerError, contracts.ErrorContract{ Status: "can't parse data" })
+					c.JSON(http.StatusInternalServerError, contracts.ErrorContract{Status: "can't parse data"})
 				}
 			} else {
-				c.JSON(http.StatusInternalServerError, contracts.ErrorContract{ Status: e.Error() })
+				c.JSON(http.StatusInternalServerError, contracts.ErrorContract{Status: e.Error()})
 			}
 		} else {
-			c.JSON(http.StatusBadRequest, contracts.ErrorContract{ Status: fmt.Sprintf("malformed request: %s", err.Error()) })
+			c.JSON(http.StatusBadRequest, contracts.ErrorContract{Status: fmt.Sprintf("malformed request: %s", err.Error())})
 		}
 	}
 }
@@ -144,29 +144,29 @@ func GetPostStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 // @Failure 400 {object} contracts.ErrorContract "bad request"
 // @Failure 500 {object} contracts.ErrorContract "server error"
 // @Router /api/string/{update-key} [put]
-func GetPutStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {	
+func GetPutStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Param("key")
 		var json contracts.UpdateStringCacheValueContract
 		if err := c.ShouldBindJSON(&json); err == nil {
 			entry := act.PutStringCacheKeyMessage{Key: key, NewValue: json.NewValue, OriginalValue: json.OriginalValue}
-			res, e := pid.RequestFuture(entry, 50 * time.Millisecond).Result()
+			res, e := pid.RequestFuture(entry, 50*time.Millisecond).Result()
 			if e == nil {
 				s, ok := res.(act.PutStringCacheKeyReply)
 				if ok {
-					if (s.Success) {
+					if s.Success {
 						c.String(http.StatusNoContent, "")
 					} else {
-						c.JSON(http.StatusBadRequest, contracts.ErrorContract{ Status: fmt.Sprintf("key '%s' was already changed to '%s'", key, s.OriginalValue) })
+						c.JSON(http.StatusBadRequest, contracts.ErrorContract{Status: fmt.Sprintf("key '%s' was already changed to '%s'", key, s.OriginalValue)})
 					}
 				} else {
-					c.JSON(http.StatusInternalServerError, contracts.ErrorContract{ Status: "can't parse data" })
+					c.JSON(http.StatusInternalServerError, contracts.ErrorContract{Status: "can't parse data"})
 				}
 			} else {
-				c.JSON(http.StatusInternalServerError, contracts.ErrorContract{ Status: e.Error() })
+				c.JSON(http.StatusInternalServerError, contracts.ErrorContract{Status: e.Error()})
 			}
 		} else {
-			c.JSON(http.StatusBadRequest, contracts.ErrorContract{ Status: fmt.Sprintf("malformed request: %s", err.Error()) })
+			c.JSON(http.StatusBadRequest, contracts.ErrorContract{Status: fmt.Sprintf("malformed request: %s", err.Error())})
 		}
 	}
 }
