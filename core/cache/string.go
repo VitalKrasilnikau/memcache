@@ -85,7 +85,7 @@ func (c *StringCache) GetKeys() []string {
 	var keySlice []string
 	now := time.Now().Unix()
 	for key, v := range c.Map {
-		if now <= v.ExpireAfter {
+		if v.ExpireAfter == 0 || now <= v.ExpireAfter {
 			keySlice = append(keySlice, key)
 		}
 	}

@@ -46,7 +46,7 @@ func (r *StringCacheRepository) SaveAll(newEntries []StringCacheDBEntry, updated
 	}
 	defer session.Close()
 	c := session.DB(r.DBName).C(r.ColName)
-	c.EnsureIndexKey("Key")
+	c.EnsureIndexKey("key")
 	var existingKeys []string
 
 	for _, entry := range newEntries {

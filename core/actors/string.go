@@ -2,14 +2,19 @@ package act
 
 import (
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/router"
 	"github.com/VitalKrasilnikau/memcache/core/cache"
 	"github.com/VitalKrasilnikau/memcache/core/repository"
 	"time"
+	"fmt"
 )
 
 // GetStringCacheKeyMessage is used to get the string cache entry.
 type GetStringCacheKeyMessage struct {
 	Key string
+}
+func (m *GetStringCacheKeyMessage) Hash() string {
+	return m.Key
 }
 // GetStringCacheKeyReply is a reply message for GetStringCacheKeyMessage.
 type GetStringCacheKeyReply struct {
@@ -17,10 +22,16 @@ type GetStringCacheKeyReply struct {
 	Value   string
 	Success bool
 }
+func (m *GetStringCacheKeyReply) Hash() string {
+	return m.Key
+}
 
 // DeleteStringCacheKeyMessage is used to request the cache item deletion.
 type DeleteStringCacheKeyMessage struct {
 	Key string
+}
+func (m *DeleteStringCacheKeyMessage) Hash() string {
+	return m.Key
 }
 // DeleteStringCacheKeyReply is a reply message for DeleteStringCacheKeyMessage.
 type DeleteStringCacheKeyReply struct {
@@ -42,10 +53,16 @@ type PostStringCacheKeyMessage struct {
 	Value string
 	TTL   time.Duration
 }
+func (m *PostStringCacheKeyMessage) Hash() string {
+	return m.Key
+}
 // PostStringCacheKeyReply is a reply message for PostStringCacheKeyMessage.
 type PostStringCacheKeyReply struct {
 	Key     string
 	Success bool
+}
+func (m *PostStringCacheKeyReply) Hash() string {
+	return m.Key
 }
 
 // PutStringCacheKeyMessage is used to request cache entry update by original value.
@@ -53,6 +70,9 @@ type PutStringCacheKeyMessage struct {
 	Key           string
 	NewValue      string
 	OriginalValue string
+}
+func (m *PutStringCacheKeyMessage) Hash() string {
+	return m.Key
 }
 // PutStringCacheKeyReply is a reply message for PutStringCacheKeyMessage.
 type PutStringCacheKeyReply struct {
@@ -62,16 +82,26 @@ type PutStringCacheKeyReply struct {
 }
 
 // NewStringCacheActor is a constructor function for StringCacheActor.
-func NewStringCacheActor(clusterName string) *actor.PID {
-	a := StringCacheActor{ClusterName: clusterName}
+func NewStringCacheActor(clusterName string, nodeName string) *actor.PID {
+	a := StringCacheActor{ClusterName: clusterName, NodeName: nodeName}
 	a.Init()
 	props := actor.FromInstance(&a)
 	return actor.Spawn(props)
 }
 
+// NewStringCacheActorCluster is a constructor function for the cluster of StringCacheActor.
+func NewStringCacheActorCluster(clusterName string, nodeNumber int) (*actor.PID, *actor.PID) {
+	var nodes = make([]*actor.PID, nodeNumber)
+	for i := 0; i < nodeNumber; i++ {
+		nodes[i] = NewStringCacheActor(clusterName, fmt.Sprintf("strings%d", i))
+	}
+	return actor.Spawn(router.NewConsistentHashGroup(nodes...)), actor.Spawn(router.NewBroadcastGroup(nodes...))
+}
+
 // StringCacheActor manages partitioned string cache and its persistence.
 type StringCacheActor struct {
 	ClusterName string
+	NodeName    string
 	Cache       cache.StringCache
 	DB          repo.StringCacheRepository
 }
@@ -79,29 +109,29 @@ type StringCacheActor struct {
 // Init restores cache entries snapshot from DB.
 func (a *StringCacheActor) Init() {
 	a.Cache = cache.StringCache{Map: make(map[string]cache.StringCacheEntry)}
-	a.DB = repo.StringCacheRepository{Host: "localhost", DBName: a.ClusterName, ColName: "strings"}
+	a.DB = repo.StringCacheRepository{Host: "localhost", DBName: a.ClusterName, ColName: a.NodeName}
 	a.restoreSnapshot()
 }
 
 // Receive is StringCacheActor messages handler.
 func (a *StringCacheActor) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
-	case GetStringCacheKeyMessage:
+	case *GetStringCacheKeyMessage:
 		ok, v := a.Cache.TryGet(msg.Key)
 		context.Respond(GetStringCacheKeyReply{Key: msg.Key, Value: v, Success: ok})
 		break
-	case DeleteStringCacheKeyMessage:
+	case *DeleteStringCacheKeyMessage:
 		ok, v := a.Cache.TryDelete(msg.Key)
 		context.Respond(DeleteStringCacheKeyReply{Key: msg.Key, DeletedValue: v, Success: ok})
 		break
-	case GetStringCacheKeysMessage:
+	case *GetStringCacheKeysMessage:
 		context.Respond(GetStringCacheKeysReply{Keys: a.Cache.GetKeys()})
 		break
-	case PostStringCacheKeyMessage:
+	case *PostStringCacheKeyMessage:
 		ok := a.Cache.TryAdd(msg.Key, msg.Value, msg.TTL)
 		context.Respond(PostStringCacheKeyReply{Key: msg.Key, Success: ok})
 		break
-	case PutStringCacheKeyMessage:
+	case *PutStringCacheKeyMessage:
 		ok, v := a.Cache.TryUpdate(msg.Key, msg.NewValue, msg.OriginalValue)
 		context.Respond(PutStringCacheKeyReply{Key: msg.Key, OriginalValue: v, Success: ok})
 		break

@@ -28,7 +28,7 @@ import (
 func GetGetStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Param("key")
-		res, e := pid.RequestFuture(act.GetStringCacheKeyMessage{Key: key}, 50*time.Millisecond).Result()
+		res, e := pid.RequestFuture(&act.GetStringCacheKeyMessage{Key: key}, 50*time.Millisecond).Result()
 		if e == nil {
 			s, ok := res.(act.GetStringCacheKeyReply)
 			if ok {
@@ -58,7 +58,7 @@ func GetGetStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 func GetDeleteStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Param("key")
-		res, e := pid.RequestFuture(act.DeleteStringCacheKeyMessage{Key: key}, 50*time.Millisecond).Result()
+		res, e := pid.RequestFuture(&act.DeleteStringCacheKeyMessage{Key: key}, 50*time.Millisecond).Result()
 		if e == nil {
 			s, ok := res.(act.DeleteStringCacheKeyReply)
 			if ok {
@@ -85,7 +85,7 @@ func GetDeleteStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 // @Router /api/string [get]
 func GetGetStringCacheKeysHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
-		res, e := pid.RequestFuture(act.GetStringCacheKeysMessage{}, 50*time.Millisecond).Result()
+		res, e := pid.RequestFuture(&act.GetStringCacheKeysMessage{}, 50*time.Millisecond).Result()
 		if e == nil {
 			s, ok := res.(act.GetStringCacheKeysReply)
 			if ok {
@@ -112,7 +112,7 @@ func GetPostStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
 		var json contracts.NewStringCacheValueContract
 		if err := c.ShouldBindJSON(&json); err == nil {
-			message := act.PostStringCacheKeyMessage{Key: json.Key, Value: json.Value, Ttl: parseDurationFromJSON(json.TTL)}
+			message := &act.PostStringCacheKeyMessage{Key: json.Key, Value: json.Value, TTL: parseDurationFromJSON(json.TTL)}
 			res, e := pid.RequestFuture(message, 50*time.Millisecond).Result()
 			if e == nil {
 				s, ok := res.(act.PostStringCacheKeyReply)
@@ -149,7 +149,7 @@ func GetPutStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 		key := c.Param("key")
 		var json contracts.UpdateStringCacheValueContract
 		if err := c.ShouldBindJSON(&json); err == nil {
-			entry := act.PutStringCacheKeyMessage{Key: key, NewValue: json.NewValue, OriginalValue: json.OriginalValue}
+			entry := &act.PutStringCacheKeyMessage{Key: key, NewValue: json.NewValue, OriginalValue: json.OriginalValue}
 			res, e := pid.RequestFuture(entry, 50*time.Millisecond).Result()
 			if e == nil {
 				s, ok := res.(act.PutStringCacheKeyReply)
@@ -176,13 +176,13 @@ func parseDurationFromJSON(json string) time.Duration {
 }
 
 func main() {
-	pid := act.NewStringCacheActor("memcache")
+	pid, bpid := act.NewStringCacheActorCluster("memcache", 10)
 	router := gin.Default()
 	api := router.Group("/api")
 	{
 		str := api.Group("/string")
 		{
-			str.GET("/", GetGetStringCacheKeysHandler(pid))
+			str.GET("/", GetGetStringCacheKeysHandler(bpid))
 			str.GET("/:key", GetGetStringCacheKeyHandler(pid))
 			str.POST("/", GetPostStringCacheKeyHandler(pid))
 			str.PUT("/:key", GetPutStringCacheKeyHandler(pid))
@@ -196,7 +196,8 @@ func main() {
 	go func() {
 		for sig := range c {
 			log.Printf("captured %v, stop the service and save data to DB", sig)
-			pid.Stop()
+			bpid.Stop()
+			time.Sleep(1*time.Second)
 			os.Exit(0)
 		}
 	}()
