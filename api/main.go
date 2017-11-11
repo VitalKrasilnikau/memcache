@@ -83,18 +83,13 @@ func GetDeleteStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 // @Success 200 {object} contracts.StringCacheKeysContract	"string cache keys"
 // @Failure 500 {object} contracts.ErrorContract "server error"
 // @Router /api/string [get]
-func GetGetStringCacheKeysHandler(pid *actor.PID) func(*gin.Context) {
+func GetGetStringCacheKeysHandler(pid *act.BroadcastStringKeysGroup) func(*gin.Context) {
 	return func(c *gin.Context) {
-		res, e := pid.RequestFuture(&act.GetStringCacheKeysMessage{}, 50*time.Millisecond).Result()
-		if e == nil {
-			s, ok := res.(act.GetStringCacheKeysReply)
-			if ok {
-				c.JSON(http.StatusOK, contracts.StringCacheKeysContract{Keys: s.Keys})
-			} else {
-				c.JSON(http.StatusInternalServerError, contracts.ErrorContract{Status: "can't parse data"})
-			}
+		res, err := pid.Request(&act.GetStringCacheKeysMessage{}, 50*time.Millisecond)
+		if (err == nil) {
+			c.JSON(http.StatusOK, contracts.StringCacheKeysContract{Keys: res.Keys})
 		} else {
-			c.JSON(http.StatusInternalServerError, contracts.ErrorContract{Status: e.Error()})
+			c.JSON(http.StatusInternalServerError, contracts.ErrorContract{Status: err.Error()})
 		}
 	}
 }
@@ -176,13 +171,13 @@ func parseDurationFromJSON(json string) time.Duration {
 }
 
 func main() {
-	pid, bpid := act.NewStringCacheActorCluster("memcache", 10)
+	pid, bpid, cpid := act.NewStringCacheActorCluster("memcache", 10)
 	router := gin.Default()
 	api := router.Group("/api")
 	{
 		str := api.Group("/string")
 		{
-			str.GET("/", GetGetStringCacheKeysHandler(bpid))
+			str.GET("/", GetGetStringCacheKeysHandler(cpid))
 			str.GET("/:key", GetGetStringCacheKeyHandler(pid))
 			str.POST("/", GetPostStringCacheKeyHandler(pid))
 			str.PUT("/:key", GetPutStringCacheKeyHandler(pid))

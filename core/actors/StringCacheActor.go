@@ -2,17 +2,16 @@ package act
 
 import (
 	"github.com/AsynkronIT/protoactor-go/actor"
-	"github.com/AsynkronIT/protoactor-go/router"
 	"github.com/VitalKrasilnikau/memcache/core/cache"
 	"github.com/VitalKrasilnikau/memcache/core/repository"
 	"time"
-	"fmt"
 )
 
 // GetStringCacheKeyMessage is used to get the string cache entry.
 type GetStringCacheKeyMessage struct {
 	Key string
 }
+// Hash is used for partitioning in actor cluster.
 func (m *GetStringCacheKeyMessage) Hash() string {
 	return m.Key
 }
@@ -22,6 +21,7 @@ type GetStringCacheKeyReply struct {
 	Value   string
 	Success bool
 }
+// Hash is used for partitioning in actor cluster.
 func (m *GetStringCacheKeyReply) Hash() string {
 	return m.Key
 }
@@ -30,6 +30,7 @@ func (m *GetStringCacheKeyReply) Hash() string {
 type DeleteStringCacheKeyMessage struct {
 	Key string
 }
+// Hash is used for partitioning in actor cluster.
 func (m *DeleteStringCacheKeyMessage) Hash() string {
 	return m.Key
 }
@@ -53,6 +54,7 @@ type PostStringCacheKeyMessage struct {
 	Value string
 	TTL   time.Duration
 }
+// Hash is used for partitioning in actor cluster.
 func (m *PostStringCacheKeyMessage) Hash() string {
 	return m.Key
 }
@@ -61,6 +63,7 @@ type PostStringCacheKeyReply struct {
 	Key     string
 	Success bool
 }
+// Hash is used for partitioning in actor cluster.
 func (m *PostStringCacheKeyReply) Hash() string {
 	return m.Key
 }
@@ -71,6 +74,7 @@ type PutStringCacheKeyMessage struct {
 	NewValue      string
 	OriginalValue string
 }
+// Hash is used for partitioning in actor cluster.
 func (m *PutStringCacheKeyMessage) Hash() string {
 	return m.Key
 }
@@ -87,15 +91,6 @@ func NewStringCacheActor(clusterName string, nodeName string) *actor.PID {
 	a.Init()
 	props := actor.FromInstance(&a)
 	return actor.Spawn(props)
-}
-
-// NewStringCacheActorCluster is a constructor function for the cluster of StringCacheActor.
-func NewStringCacheActorCluster(clusterName string, nodeNumber int) (*actor.PID, *actor.PID) {
-	var nodes = make([]*actor.PID, nodeNumber)
-	for i := 0; i < nodeNumber; i++ {
-		nodes[i] = NewStringCacheActor(clusterName, fmt.Sprintf("strings%d", i))
-	}
-	return actor.Spawn(router.NewConsistentHashGroup(nodes...)), actor.Spawn(router.NewBroadcastGroup(nodes...))
 }
 
 // StringCacheActor manages partitioned string cache and its persistence.
