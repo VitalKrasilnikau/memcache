@@ -136,11 +136,12 @@ func (a *StringCacheActor) Receive(context actor.Context) {
 func (a *StringCacheActor) restoreSnapshot() {
 	for _, entry := range a.DB.GetAll() {
 		mappedItem := cache.StringCacheEntry{
+			Value:       entry.Value,
+			CacheEntryData: cache.CacheEntryData{
 			Added:       entry.Added,
 			Updated:     entry.Updated,
-			ExpireAfter: entry.ExpireAfter,
-			Value:       entry.Value,
-			Persisted:   true}
+			ExpireAfter: entry.ExpireAfter,			
+			Persisted:   true}}
 		a.Cache.TryAddFromSnapshot(entry.Key, mappedItem)
 	}
 }
@@ -153,9 +154,9 @@ func (a *StringCacheActor) persistSnapshot() {
 		if ok {
 			mappedItem := repo.StringCacheDBEntry{
 				Key:         k,
-				Added:       v.Added,
-				Updated:     v.Updated,
-				ExpireAfter: v.ExpireAfter,
+				Added:       v.CacheEntryData.Added,
+				Updated:     v.CacheEntryData.Updated,
+				ExpireAfter: v.CacheEntryData.ExpireAfter,
 				Value:       v.Value}
 			if v.Persisted {
 				updatedItems = append(updatedItems, mappedItem)

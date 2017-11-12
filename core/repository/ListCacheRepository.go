@@ -63,10 +63,10 @@ func (r *ListCacheRepository) SaveAll(newEntries []ListCacheDBEntry, updatedEntr
 	for _, entry := range updatedEntries {
 		existingKeys = append(existingKeys, entry.Key)
 		if entry.Updated > entry.Added {
-			/*e := c.Update(bson.M{"key": entry.Key}, bson.M{"$set": bson.M{"value": entry.Value, "updated": entry.Updated}})
+			e := c.Update(bson.M{"key": entry.Key}, bson.M{"$set": bson.M{"values": entry.Values, "updated": entry.Updated}})
 			if e != nil {
 				log.Fatal(err)
-			}*/
+			}
 		}
 	}
 	if existingKeys == nil {

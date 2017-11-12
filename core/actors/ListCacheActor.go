@@ -185,11 +185,12 @@ func (a *ListCacheActor) Receive(context actor.Context) {
 func (a *ListCacheActor) restoreSnapshot() {
 	for _, entry := range a.DB.GetAll() {
 		mappedItem := cache.ListCacheEntry{
+			Values:      entry.Values,
+			CacheEntryData: cache.CacheEntryData{
 			Added:       entry.Added,
 			Updated:     entry.Updated,
 			ExpireAfter: entry.ExpireAfter,
-			Values:      entry.Values,
-			Persisted:   true}
+			Persisted:   true}}
 		a.Cache.TryAddFromSnapshot(entry.Key, mappedItem)
 	}
 }
@@ -202,9 +203,9 @@ func (a *ListCacheActor) persistSnapshot() {
 		if ok {
 			mappedItem := repo.ListCacheDBEntry{
 				Key:         k,
-				Added:       v.Added,
-				Updated:     v.Updated,
-				ExpireAfter: v.ExpireAfter,
+				Added:       v.CacheEntryData.Added,
+				Updated:     v.CacheEntryData.Updated,
+				ExpireAfter: v.CacheEntryData.ExpireAfter,
 				Values:       v.Values}
 			if v.Persisted {
 				updatedItems = append(updatedItems, mappedItem)
