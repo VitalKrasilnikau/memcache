@@ -2,6 +2,7 @@ package cache
 
 import (
 	"time"
+	"log"
 )
 
 // StringCacheEntry is a string cache data item stored in the memory cache.
@@ -13,7 +14,7 @@ type StringCacheEntry struct {
 	Persisted   bool
 }
 
-// StringCache is a single-thread in-memory cache based on map[string]string.
+// StringCache is a single-thread in-memory cache based on map[string]StringCacheEntry.
 type StringCache struct {
 	Map map[string]StringCacheEntry
 }
@@ -104,6 +105,7 @@ func (c *StringCache) getValueWithExpiration(key string) (StringCacheEntry, bool
 		now := time.Now().Unix()
 		if now > v.ExpireAfter {
 			delete(c.Map, key)
+			log.Printf("[StringCache] key %s had expired and was removed", key)
 			return v, false // expired
 		}
 		return v, ok // not expired

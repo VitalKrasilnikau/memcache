@@ -5,6 +5,7 @@ import (
 	"github.com/VitalKrasilnikau/memcache/core/cache"
 	"github.com/VitalKrasilnikau/memcache/core/repository"
 	"time"
+	"log"
 )
 
 // GetStringCacheKeyMessage is used to get the string cache entry.
@@ -39,13 +40,6 @@ type DeleteStringCacheKeyReply struct {
 	Key          string
 	DeletedValue string
 	Success      bool
-}
-
-// GetStringCacheKeysMessage is used to request all cache keys.
-type GetStringCacheKeysMessage struct{}
-// GetStringCacheKeysReply is a reply message for GetStringCacheKeysMessage.
-type GetStringCacheKeysReply struct {
-	Keys []string
 }
 
 // PostStringCacheKeyMessage is used to add new cache entry.
@@ -118,17 +112,20 @@ func (a *StringCacheActor) Receive(context actor.Context) {
 	case *DeleteStringCacheKeyMessage:
 		ok, v := a.Cache.TryDelete(msg.Key)
 		context.Respond(DeleteStringCacheKeyReply{Key: msg.Key, DeletedValue: v, Success: ok})
+		log.Printf("[StringCacheActor] Deleted %s", msg.Key)
 		break
-	case *GetStringCacheKeysMessage:
-		context.Respond(GetStringCacheKeysReply{Keys: a.Cache.GetKeys()})
+	case *GetCacheKeysMessage:
+		context.Respond(GetCacheKeysReply{Keys: a.Cache.GetKeys()})
 		break
 	case *PostStringCacheKeyMessage:
 		ok := a.Cache.TryAdd(msg.Key, msg.Value, msg.TTL)
 		context.Respond(PostStringCacheKeyReply{Key: msg.Key, Success: ok})
+		log.Printf("[StringCacheActor] Created %s [%v]", msg.Key, msg.TTL)
 		break
 	case *PutStringCacheKeyMessage:
 		ok, v := a.Cache.TryUpdate(msg.Key, msg.NewValue, msg.OriginalValue)
 		context.Respond(PutStringCacheKeyReply{Key: msg.Key, OriginalValue: v, Success: ok})
+		log.Printf("[StringCacheActor] Updated %s to %s", msg.Key, msg.NewValue)
 		break
 	case *actor.Stopping:
 		a.persistSnapshot()

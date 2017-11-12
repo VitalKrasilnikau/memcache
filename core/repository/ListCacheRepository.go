@@ -6,43 +6,43 @@ import (
 	"log"
 )
 
-// StringCacheDBEntry is a contract which is serialized to BSON and saved in MongoDB.
-type StringCacheDBEntry struct {
+// ListCacheDBEntry is a contract which is serialized to BSON and saved in MongoDB.
+type ListCacheDBEntry struct {
 	Key         string
-	Value       string
+	Values      []string
 	ExpireAfter int64
 	Added       int64
 	Updated     int64
 }
 
-// StringCacheRepository for persisting cache entries to MongoDB.
-type StringCacheRepository struct {
+// ListCacheRepository for persisting cache entries to MongoDB.
+type ListCacheRepository struct {
 	Host    string
 	DBName  string
 	ColName string
 }
 
 // GetAll returns cache snapshot from DB.
-func (r *StringCacheRepository) GetAll() []StringCacheDBEntry {
+func (r *ListCacheRepository) GetAll() []ListCacheDBEntry {
 	session, err := mgo.Dial(r.Host)
 	if err != nil {
 		panic(err)
 	}
 	defer session.Close()
 	c := session.DB(r.DBName).C(r.ColName)
-	var result []StringCacheDBEntry
+	var result []ListCacheDBEntry
 	err = c.Find(bson.M{}).All(&result)
 	if err != nil {
 		log.Fatal(err)
 	}
 	if result != nil {
-		log.Printf("[StringCacheDBEntry] Read snapshot from %s.%s successfully.", r.DBName, r.ColName)
+		log.Printf("[ListCacheDBEntry] Read snapshot from %s.%s successfully.", r.DBName, r.ColName)
 	}
 	return result
 }
 
 // SaveAll saves cache snapshot to DB.
-func (r *StringCacheRepository) SaveAll(newEntries []StringCacheDBEntry, updatedEntries []StringCacheDBEntry) {
+func (r *ListCacheRepository) SaveAll(newEntries []ListCacheDBEntry, updatedEntries []ListCacheDBEntry) {
 	session, err := mgo.Dial(r.Host)
 	if err != nil {
 		panic(err)
@@ -63,10 +63,10 @@ func (r *StringCacheRepository) SaveAll(newEntries []StringCacheDBEntry, updated
 	for _, entry := range updatedEntries {
 		existingKeys = append(existingKeys, entry.Key)
 		if entry.Updated > entry.Added {
-			e := c.Update(bson.M{"key": entry.Key}, bson.M{"$set": bson.M{"value": entry.Value, "updated": entry.Updated}})
+			/*e := c.Update(bson.M{"key": entry.Key}, bson.M{"$set": bson.M{"value": entry.Value, "updated": entry.Updated}})
 			if e != nil {
 				log.Fatal(err)
-			}
+			}*/
 		}
 	}
 	if existingKeys == nil {
@@ -76,5 +76,5 @@ func (r *StringCacheRepository) SaveAll(newEntries []StringCacheDBEntry, updated
 	if e != nil {
 		log.Fatal(err)
 	}
-	log.Printf("[StringCacheDBEntry] Persisted data to %s.%s successfully.", r.DBName, r.ColName)
+	log.Printf("[ListCacheDBEntry] Persisted data to %s.%s successfully.", r.DBName, r.ColName)
 }

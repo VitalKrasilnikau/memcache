@@ -5,14 +5,6 @@ type StringCacheValueContract struct {
 	Value string `json:"value"`
 }
 
-type StringCacheKeysContract struct {
-	Keys []string `json:"keys"`
-}
-
-type ErrorContract struct {
-	Status string `json:"status"`
-}
-
 type NewStringCacheValueContract struct {
 	Key   string `form:"key" json:"key" binding:"required"`
 	Value string `form:"value" json:"value" binding:"required"`
