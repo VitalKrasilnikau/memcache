@@ -1,13 +1,13 @@
 package cache
 
 import (
-	"time"
 	"log"
+	"time"
 )
 
 // ListCacheEntry is a string cache data item stored in the memory cache.
 type ListCacheEntry struct {
-	Values      []string
+	Values []string
 	CacheEntryData
 }
 
@@ -62,7 +62,7 @@ func (c *ListCache) TryUpdateValue(key string, newValue string, originalValue st
 		newValues, updated := c.replaceValueInArray(v.Values, newValue, originalValue, false)
 		if updated {
 			entry := ListCacheEntry{
-				Values:      newValues,
+				Values:         newValues,
 				CacheEntryData: UpdateCacheEntryData(v.CacheEntryData)}
 			c.Map[key] = entry
 		}
@@ -78,7 +78,7 @@ func (c *ListCache) TryDeleteValue(key string, value string) (bool, []string) {
 		newValues, deleted := c.replaceValueInArray(v.Values, "", value, true)
 		if deleted {
 			entry := ListCacheEntry{
-				Values:      newValues,
+				Values:         newValues,
 				CacheEntryData: UpdateCacheEntryData(v.CacheEntryData)}
 			c.Map[key] = entry
 		}
@@ -92,7 +92,7 @@ func (c *ListCache) TryAddValue(key string, newValue string) (bool, []string) {
 	v, ok := c.getValueWithExpiration(key)
 	if ok {
 		entry := ListCacheEntry{
-			Values:      append(v.Values, newValue),
+			Values:         append(v.Values, newValue),
 			CacheEntryData: UpdateCacheEntryData(v.CacheEntryData)}
 		c.Map[key] = entry
 		return true, v.Values

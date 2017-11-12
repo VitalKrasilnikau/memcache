@@ -1,13 +1,13 @@
 package cache
 
 import (
-	"time"
 	"log"
+	"time"
 )
 
 // StringCacheEntry is a string cache data item stored in the memory cache.
 type StringCacheEntry struct {
-	Value       string
+	Value string
 	CacheEntryData
 }
 
@@ -61,7 +61,7 @@ func (c *StringCache) TryUpdate(key string, newValue string, originalValue strin
 	v, ok := c.getValueWithExpiration(key)
 	if ok && v.Value == originalValue {
 		entry := StringCacheEntry{
-			Value:       newValue,
+			Value:          newValue,
 			CacheEntryData: UpdateCacheEntryData(v.CacheEntryData)}
 		c.Map[key] = entry
 		return true, v.Value

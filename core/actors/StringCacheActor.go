@@ -4,24 +4,27 @@ import (
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/VitalKrasilnikau/memcache/core/cache"
 	"github.com/VitalKrasilnikau/memcache/core/repository"
-	"time"
 	"log"
+	"time"
 )
 
 // GetStringCacheKeyMessage is used to get the string cache entry.
 type GetStringCacheKeyMessage struct {
 	Key string
 }
+
 // Hash is used for partitioning in actor cluster.
 func (m *GetStringCacheKeyMessage) Hash() string {
 	return m.Key
 }
+
 // GetStringCacheKeyReply is a reply message for GetStringCacheKeyMessage.
 type GetStringCacheKeyReply struct {
 	Key     string
 	Value   string
 	Success bool
 }
+
 // Hash is used for partitioning in actor cluster.
 func (m *GetStringCacheKeyReply) Hash() string {
 	return m.Key
@@ -31,10 +34,12 @@ func (m *GetStringCacheKeyReply) Hash() string {
 type DeleteStringCacheKeyMessage struct {
 	Key string
 }
+
 // Hash is used for partitioning in actor cluster.
 func (m *DeleteStringCacheKeyMessage) Hash() string {
 	return m.Key
 }
+
 // DeleteStringCacheKeyReply is a reply message for DeleteStringCacheKeyMessage.
 type DeleteStringCacheKeyReply struct {
 	Key          string
@@ -48,15 +53,18 @@ type PostStringCacheKeyMessage struct {
 	Value string
 	TTL   time.Duration
 }
+
 // Hash is used for partitioning in actor cluster.
 func (m *PostStringCacheKeyMessage) Hash() string {
 	return m.Key
 }
+
 // PostStringCacheKeyReply is a reply message for PostStringCacheKeyMessage.
 type PostStringCacheKeyReply struct {
 	Key     string
 	Success bool
 }
+
 // Hash is used for partitioning in actor cluster.
 func (m *PostStringCacheKeyReply) Hash() string {
 	return m.Key
@@ -68,10 +76,12 @@ type PutStringCacheKeyMessage struct {
 	NewValue      string
 	OriginalValue string
 }
+
 // Hash is used for partitioning in actor cluster.
 func (m *PutStringCacheKeyMessage) Hash() string {
 	return m.Key
 }
+
 // PutStringCacheKeyReply is a reply message for PutStringCacheKeyMessage.
 type PutStringCacheKeyReply struct {
 	Key           string
@@ -136,12 +146,12 @@ func (a *StringCacheActor) Receive(context actor.Context) {
 func (a *StringCacheActor) restoreSnapshot() {
 	for _, entry := range a.DB.GetAll() {
 		mappedItem := cache.StringCacheEntry{
-			Value:       entry.Value,
+			Value: entry.Value,
 			CacheEntryData: cache.CacheEntryData{
-			Added:       entry.Added,
-			Updated:     entry.Updated,
-			ExpireAfter: entry.ExpireAfter,			
-			Persisted:   true}}
+				Added:       entry.Added,
+				Updated:     entry.Updated,
+				ExpireAfter: entry.ExpireAfter,
+				Persisted:   true}}
 		a.Cache.TryAddFromSnapshot(entry.Key, mappedItem)
 	}
 }

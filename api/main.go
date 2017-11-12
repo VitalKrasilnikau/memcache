@@ -1,9 +1,9 @@
 package main
 
 import (
-	_ "github.com/VitalKrasilnikau/memcache/api/docs"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/VitalKrasilnikau/memcache/api/controllers"
+	_ "github.com/VitalKrasilnikau/memcache/api/docs"
 	"github.com/VitalKrasilnikau/memcache/core/actors"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
@@ -224,7 +224,7 @@ func main() {
 			log.Printf("captured %v, stop the service and save data to DB", sig)
 			bpid.Stop()
 			lbpid.Stop()
-			time.Sleep(1*time.Second)
+			time.Sleep(1 * time.Second)
 			os.Exit(0)
 		}
 	}()

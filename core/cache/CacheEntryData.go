@@ -22,9 +22,9 @@ func NewCacheEntryData(ttl time.Duration) CacheEntryData {
 	}
 	return CacheEntryData{
 		ExpireAfter: expireAfter,
-		Added: now,
-		Updated: now,
-		Persisted: false}
+		Added:       now,
+		Updated:     now,
+		Persisted:   false}
 }
 
 // UpdateCacheEntryData returns an updated copy of CacheEntryData.

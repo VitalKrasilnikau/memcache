@@ -4,24 +4,27 @@ import (
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/VitalKrasilnikau/memcache/core/cache"
 	"github.com/VitalKrasilnikau/memcache/core/repository"
-	"time"
 	"log"
+	"time"
 )
 
 // GetListCacheKeyMessage is used to get the string cache entry.
 type GetListCacheKeyMessage struct {
 	Key string
 }
+
 // Hash is used for partitioning in actor cluster.
 func (m *GetListCacheKeyMessage) Hash() string {
 	return m.Key
 }
+
 // GetListCacheKeyReply is a reply message for GetListCacheKeyMessage.
 type GetListCacheKeyReply struct {
 	Key     string
 	Values  []string
 	Success bool
 }
+
 // Hash is used for partitioning in actor cluster.
 func (m *GetListCacheKeyReply) Hash() string {
 	return m.Key
@@ -31,10 +34,12 @@ func (m *GetListCacheKeyReply) Hash() string {
 type DeleteListCacheKeyMessage struct {
 	Key string
 }
+
 // Hash is used for partitioning in actor cluster.
 func (m *DeleteListCacheKeyMessage) Hash() string {
 	return m.Key
 }
+
 // DeleteListCacheKeyReply is a reply message for DeleteListCacheKeyMessage.
 type DeleteListCacheKeyReply struct {
 	Key           string
@@ -48,15 +53,18 @@ type PostListCacheKeyMessage struct {
 	Values []string
 	TTL    time.Duration
 }
+
 // Hash is used for partitioning in actor cluster.
 func (m *PostListCacheKeyMessage) Hash() string {
 	return m.Key
 }
+
 // PostListCacheKeyReply is a reply message for PostListCacheKeyMessage.
 type PostListCacheKeyReply struct {
-	Key        string
-	Success    bool
+	Key     string
+	Success bool
 }
+
 // Hash is used for partitioning in actor cluster.
 func (m *PostListCacheKeyReply) Hash() string {
 	return m.Key
@@ -68,10 +76,12 @@ type PutListCacheValueMessage struct {
 	NewValue      string
 	OriginalValue string
 }
+
 // Hash is used for partitioning in actor cluster.
 func (m *PutListCacheValueMessage) Hash() string {
 	return m.Key
 }
+
 // PutListCacheValueReply is a reply message for PutListCacheValueMessage.
 type PutListCacheValueReply struct {
 	Key           string
@@ -82,34 +92,38 @@ type PutListCacheValueReply struct {
 
 // DeleteListCacheValueMessage is used to request cache entry update by deleting the original value.
 type DeleteListCacheValueMessage struct {
-	Key           string
-	Value         string
+	Key   string
+	Value string
 }
+
 // Hash is used for partitioning in actor cluster.
 func (m *DeleteListCacheValueMessage) Hash() string {
 	return m.Key
 }
+
 // DeleteListCacheValueReply is a reply message for DeleteListCacheValueMessage.
 type DeleteListCacheValueReply struct {
-	Key           string
-	DeletedValue  string
-	Success       bool
+	Key          string
+	DeletedValue string
+	Success      bool
 }
 
 // PostListCacheValueMessage is used to request cache entry update by original value.
 type PostListCacheValueMessage struct {
-	Key           string
-	NewValue      string
+	Key      string
+	NewValue string
 }
+
 // Hash is used for partitioning in actor cluster.
 func (m *PostListCacheValueMessage) Hash() string {
 	return m.Key
 }
+
 // PostListCacheValueReply is a reply message for PostListCacheValueMessage.
 type PostListCacheValueReply struct {
-	Key           string
-	Success       bool
-	AddedValue    string
+	Key        string
+	Success    bool
+	AddedValue string
 }
 
 // NewListCacheActor is a constructor function for ListCacheActor.
@@ -185,12 +199,12 @@ func (a *ListCacheActor) Receive(context actor.Context) {
 func (a *ListCacheActor) restoreSnapshot() {
 	for _, entry := range a.DB.GetAll() {
 		mappedItem := cache.ListCacheEntry{
-			Values:      entry.Values,
+			Values: entry.Values,
 			CacheEntryData: cache.CacheEntryData{
-			Added:       entry.Added,
-			Updated:     entry.Updated,
-			ExpireAfter: entry.ExpireAfter,
-			Persisted:   true}}
+				Added:       entry.Added,
+				Updated:     entry.Updated,
+				ExpireAfter: entry.ExpireAfter,
+				Persisted:   true}}
 		a.Cache.TryAddFromSnapshot(entry.Key, mappedItem)
 	}
 }
@@ -206,7 +220,7 @@ func (a *ListCacheActor) persistSnapshot() {
 				Added:       v.CacheEntryData.Added,
 				Updated:     v.CacheEntryData.Updated,
 				ExpireAfter: v.CacheEntryData.ExpireAfter,
-				Values:       v.Values}
+				Values:      v.Values}
 			if v.Persisted {
 				updatedItems = append(updatedItems, mappedItem)
 			} else {

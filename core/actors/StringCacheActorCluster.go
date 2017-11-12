@@ -1,9 +1,9 @@
 package act
 
 import (
+	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/AsynkronIT/protoactor-go/router"
-	"fmt"
 )
 
 // NewStringCacheActorCluster is a constructor function for the cluster of StringCacheActor.

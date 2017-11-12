@@ -1,16 +1,17 @@
 package act
 
 import (
-	"time"
-	"github.com/AsynkronIT/protoactor-go/actor"
 	"errors"
+	"github.com/AsynkronIT/protoactor-go/actor"
 	"strings"
+	"time"
 )
 
 // BroadcastStringKeysGroup holds PIDs of actors to get string keys in the group.
-type BroadcastStringKeysGroup struct{
+type BroadcastStringKeysGroup struct {
 	Routee []*actor.PID
 }
+
 // Request selects string keys from all actors in the group.
 func (g *BroadcastStringKeysGroup) Request(message *GetCacheKeysMessage, timeout time.Duration) (GetCacheKeysReply, error) {
 	var keys []string
@@ -35,6 +36,7 @@ func (g *BroadcastStringKeysGroup) Request(message *GetCacheKeysMessage, timeout
 	}
 	return GetCacheKeysReply{Keys: keys}, resultError
 }
+
 // NewBroadcastStringKeysGroup creates new BroadcastStringKeysGroup.
 func NewBroadcastStringKeysGroup(routees []*actor.PID) *BroadcastStringKeysGroup {
 	return &BroadcastStringKeysGroup{Routee: routees}

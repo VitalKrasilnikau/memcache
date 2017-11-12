@@ -11,7 +11,7 @@ import (
 func GetCacheKeysHandler(pid *act.BroadcastStringKeysGroup) func(*gin.Context) {
 	return func(c *gin.Context) {
 		res, e := pid.Request(&act.GetCacheKeysMessage{}, defTimeout)
-		if (e == nil) {
+		if e == nil {
 			api.OK(c, contracts.CacheKeysContract{Keys: res.Keys})
 		} else {
 			api.Error(c, e.Error())
