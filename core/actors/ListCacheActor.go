@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// GetListCacheKeyMessage is used to get the string cache entry.
+// GetListCacheKeyMessage is used to get the list cache entry.
 type GetListCacheKeyMessage struct {
 	Key string
 }
