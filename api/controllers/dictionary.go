@@ -164,16 +164,16 @@ func DeleteDictionaryCacheValueHandler(pid *actor.PID) func(*gin.Context) {
 
 func toDto(values []cache.KeyValue) []contracts.DictionaryKeyValueContract {
 	var a = make([]contracts.DictionaryKeyValueContract, len(values))
-	for _, v := range values {
-		a = append(a, contracts.DictionaryKeyValueContract{Key: v.Key, Value: v.Value})
+	for i, v := range values {
+		a[i] = contracts.DictionaryKeyValueContract{Key: v.Key, Value: v.Value}
 	}
 	return a
 }
 
 func fromDto(values []contracts.DictionaryKeyValueContract) []cache.KeyValue {
 	var a = make([]cache.KeyValue, len(values))
-	for _, v := range values {
-		a = append(a, cache.KeyValue{Key: v.Key, Value: v.Value})
+	for i, v := range values {
+		a[i] = cache.KeyValue{Key: v.Key, Value: v.Value}
 	}
 	return a
 }

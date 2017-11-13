@@ -101,8 +101,8 @@ func NewStringCacheActor(clusterName string, nodeName string) *actor.PID {
 type StringCacheActor struct {
 	ClusterName string
 	NodeName    string
-	Cache       cache.StringCache
-	DB          repo.StringCacheRepository
+	Cache       cache.IStringCache
+	DB          repo.IStringCacheRepository
 }
 
 // Init restores cache entries snapshot from DB.

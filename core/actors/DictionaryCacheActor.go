@@ -139,8 +139,8 @@ func NewDictionaryCacheActor(clusterName string, nodeName string) *actor.PID {
 type DictionaryCacheActor struct {
 	ClusterName string
 	NodeName    string
-	Cache       cache.DictionaryCache
-	DB          repo.DictionaryCacheRepository
+	Cache       cache.IDictionaryCache
+	DB          repo.IDictionaryCacheRepository
 }
 
 // Init restores cache entries snapshot from DB.
@@ -200,7 +200,7 @@ func (a *DictionaryCacheActor) Receive(context actor.Context) {
 func (a *DictionaryCacheActor) restoreSnapshot() {
 	for _, entry := range a.DB.GetAll() {
 		mappedItem := cache.DictionaryCacheEntry{
-			//Values: entry.Values,
+			Map: cache.ToMap(fromDB(entry.Values)),
 			CacheEntryData: cache.CacheEntryData{
 				Added:       entry.Added,
 				Updated:     entry.Updated,
@@ -218,7 +218,7 @@ func (a *DictionaryCacheActor) persistSnapshot() {
 		if ok {
 			mappedItem := repo.DictionaryCacheDBEntry{
 				Key: k,
-				//Values:      v.Values
+				Values:      toDB(cache.FromMap(v.Map)),
 				Added:       v.CacheEntryData.Added,
 				Updated:     v.CacheEntryData.Updated,
 				ExpireAfter: v.CacheEntryData.ExpireAfter}
@@ -236,4 +236,20 @@ func (a *DictionaryCacheActor) persistSnapshot() {
 		updatedItems = make([]repo.DictionaryCacheDBEntry, 0)
 	}
 	a.DB.SaveAll(newItems, updatedItems)
+}
+
+func toDB(values []cache.KeyValue) []repo.DictionaryValueDBEntry {
+	var a = make([]repo.DictionaryValueDBEntry, len(values))
+	for i, v := range values {
+		a[i] = repo.DictionaryValueDBEntry{Key: v.Key, Value: v.Value}
+	}
+	return a
+}
+
+func fromDB(values []repo.DictionaryValueDBEntry) []cache.KeyValue {
+	var a = make([]cache.KeyValue, len(values))
+	for i, v := range values {
+		a[i] = cache.KeyValue{Key: v.Key, Value: v.Value}
+	}
+	return a
 }

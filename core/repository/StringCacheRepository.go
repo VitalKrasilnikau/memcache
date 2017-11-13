@@ -15,6 +15,12 @@ type StringCacheDBEntry struct {
 	Updated     int64
 }
 
+// IStringCacheRepository is an interface for StringCacheRepository.
+type IStringCacheRepository interface {
+	GetAll() []StringCacheDBEntry
+	SaveAll(newEntries []StringCacheDBEntry, updatedEntries []StringCacheDBEntry)
+}
+
 // StringCacheRepository for persisting cache entries to MongoDB.
 type StringCacheRepository struct {
 	Host    string
@@ -23,7 +29,7 @@ type StringCacheRepository struct {
 }
 
 // GetAll returns cache snapshot from DB.
-func (r *StringCacheRepository) GetAll() []StringCacheDBEntry {
+func (r StringCacheRepository) GetAll() []StringCacheDBEntry {
 	session, err := mgo.Dial(r.Host)
 	if err != nil {
 		panic(err)
@@ -42,7 +48,7 @@ func (r *StringCacheRepository) GetAll() []StringCacheDBEntry {
 }
 
 // SaveAll saves cache snapshot to DB.
-func (r *StringCacheRepository) SaveAll(newEntries []StringCacheDBEntry, updatedEntries []StringCacheDBEntry) {
+func (r StringCacheRepository) SaveAll(newEntries []StringCacheDBEntry, updatedEntries []StringCacheDBEntry) {
 	session, err := mgo.Dial(r.Host)
 	if err != nil {
 		panic(err)

@@ -138,8 +138,8 @@ func NewListCacheActor(clusterName string, nodeName string) *actor.PID {
 type ListCacheActor struct {
 	ClusterName string
 	NodeName    string
-	Cache       cache.ListCache
-	DB          repo.ListCacheRepository
+	Cache       cache.IListCache
+	DB          repo.IListCacheRepository
 }
 
 // Init restores cache entries snapshot from DB.

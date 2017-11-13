@@ -6,13 +6,25 @@ import (
 	"log"
 )
 
+// DictionaryValueDBEntry is a dictionary key/value contract which is serialized to BSON and saved in MongoDB.
+type DictionaryValueDBEntry struct {
+	Key string
+	Value string
+}
+
 // DictionaryCacheDBEntry is a contract which is serialized to BSON and saved in MongoDB.
 type DictionaryCacheDBEntry struct {
 	Key         string
-	Values      []string
+	Values      []DictionaryValueDBEntry
 	ExpireAfter int64
 	Added       int64
 	Updated     int64
+}
+
+// IDictionaryCacheRepository is an interface for DictionaryCacheRepository.
+type IDictionaryCacheRepository interface {
+	GetAll() []DictionaryCacheDBEntry
+	SaveAll(newEntries []DictionaryCacheDBEntry, updatedEntries []DictionaryCacheDBEntry)
 }
 
 // DictionaryCacheRepository for persisting cache entries to MongoDB.
@@ -23,7 +35,7 @@ type DictionaryCacheRepository struct {
 }
 
 // GetAll returns cache snapshot from DB.
-func (r *DictionaryCacheRepository) GetAll() []DictionaryCacheDBEntry {
+func (r DictionaryCacheRepository) GetAll() []DictionaryCacheDBEntry {
 	session, err := mgo.Dial(r.Host)
 	if err != nil {
 		panic(err)
@@ -42,7 +54,7 @@ func (r *DictionaryCacheRepository) GetAll() []DictionaryCacheDBEntry {
 }
 
 // SaveAll saves cache snapshot to DB.
-func (r *DictionaryCacheRepository) SaveAll(newEntries []DictionaryCacheDBEntry, updatedEntries []DictionaryCacheDBEntry) {
+func (r DictionaryCacheRepository) SaveAll(newEntries []DictionaryCacheDBEntry, updatedEntries []DictionaryCacheDBEntry) {
 	session, err := mgo.Dial(r.Host)
 	if err != nil {
 		panic(err)

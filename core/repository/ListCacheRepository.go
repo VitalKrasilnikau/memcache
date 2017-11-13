@@ -15,6 +15,12 @@ type ListCacheDBEntry struct {
 	Updated     int64
 }
 
+// IListCacheRepository is an interface for ListCacheRepository.
+type IListCacheRepository interface {
+	GetAll() []ListCacheDBEntry
+	SaveAll(newEntries []ListCacheDBEntry, updatedEntries []ListCacheDBEntry)
+}
+
 // ListCacheRepository for persisting cache entries to MongoDB.
 type ListCacheRepository struct {
 	Host    string
@@ -23,7 +29,7 @@ type ListCacheRepository struct {
 }
 
 // GetAll returns cache snapshot from DB.
-func (r *ListCacheRepository) GetAll() []ListCacheDBEntry {
+func (r ListCacheRepository) GetAll() []ListCacheDBEntry {
 	session, err := mgo.Dial(r.Host)
 	if err != nil {
 		panic(err)
@@ -42,7 +48,7 @@ func (r *ListCacheRepository) GetAll() []ListCacheDBEntry {
 }
 
 // SaveAll saves cache snapshot to DB.
-func (r *ListCacheRepository) SaveAll(newEntries []ListCacheDBEntry, updatedEntries []ListCacheDBEntry) {
+func (r ListCacheRepository) SaveAll(newEntries []ListCacheDBEntry, updatedEntries []ListCacheDBEntry) {
 	session, err := mgo.Dial(r.Host)
 	if err != nil {
 		panic(err)
