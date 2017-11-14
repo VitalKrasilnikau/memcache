@@ -90,9 +90,9 @@ type PutStringCacheKeyReply struct {
 }
 
 // NewStringCacheActor is a constructor function for StringCacheActor.
-func NewStringCacheActor(clusterName string, nodeName string) *actor.PID {
+func NewStringCacheActor(clusterName string, nodeName string, usePersistence bool) *actor.PID {
 	a := StringCacheActor{ClusterName: clusterName, NodeName: nodeName}
-	a.Init()
+	a.Init(usePersistence)
 	props := actor.FromInstance(&a)
 	return actor.Spawn(props)
 }
@@ -106,9 +106,13 @@ type StringCacheActor struct {
 }
 
 // Init restores cache entries snapshot from DB.
-func (a *StringCacheActor) Init() {
+func (a *StringCacheActor) Init(usePersistence bool) {
 	a.Cache = cache.StringCache{Map: make(map[string]cache.StringCacheEntry)}
-	a.DB = repo.StringCacheRepository{Host: "localhost", DBName: a.ClusterName, ColName: a.NodeName}
+	if usePersistence {
+		a.DB = repo.StringCacheRepository{Host: "localhost", DBName: a.ClusterName, ColName: a.NodeName}
+	} else {
+		a.DB = repo.EmptyStringCacheRepository{}
+	}
 	a.restoreSnapshot()
 }
 

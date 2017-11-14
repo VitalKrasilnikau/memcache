@@ -90,3 +90,17 @@ func (r DictionaryCacheRepository) SaveAll(newEntries []DictionaryCacheDBEntry, 
 	}
 	log.Printf("[DictionaryCacheDBEntry] Persisted data to %s.%s successfully.", r.DBName, r.ColName)
 }
+
+// EmptyDictionaryCacheRepository for testing only.
+type EmptyDictionaryCacheRepository struct {
+
+}
+
+// GetAll returns empty cache.
+func (r EmptyDictionaryCacheRepository) GetAll() []DictionaryCacheDBEntry {
+	return make([]DictionaryCacheDBEntry, 0)
+}
+
+// SaveAll saves nothing.
+func (r EmptyDictionaryCacheRepository) SaveAll(newEntries []DictionaryCacheDBEntry, updatedEntries []DictionaryCacheDBEntry) {
+}

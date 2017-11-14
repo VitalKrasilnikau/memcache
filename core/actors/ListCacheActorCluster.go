@@ -7,10 +7,10 @@ import (
 )
 
 // NewListCacheActorCluster is a constructor function for the cluster of ListCacheActor.
-func NewListCacheActorCluster(clusterName string, nodeNumber int) (*actor.PID, *BroadcastStopGroup, *BroadcastStringKeysGroup) {
+func NewListCacheActorCluster(clusterName string, nodeNumber int, usePersistence bool) (*actor.PID, *BroadcastStopGroup, *BroadcastStringKeysGroup) {
 	var nodes = make([]*actor.PID, nodeNumber)
 	for i := 0; i < nodeNumber; i++ {
-		nodes[i] = NewListCacheActor(clusterName, fmt.Sprintf("lists%d", i))
+		nodes[i] = NewListCacheActor(clusterName, fmt.Sprintf("lists%d", i), usePersistence)
 	}
 	return actor.Spawn(router.NewConsistentHashGroup(nodes...)),
 		NewBroadcastStopGroup(nodes),

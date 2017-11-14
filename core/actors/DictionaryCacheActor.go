@@ -128,9 +128,9 @@ type PostDictionaryCacheValueReply struct {
 }
 
 // NewDictionaryCacheActor is a constructor function for DictionaryCacheActor.
-func NewDictionaryCacheActor(clusterName string, nodeName string) *actor.PID {
+func NewDictionaryCacheActor(clusterName string, nodeName string, usePersistence bool) *actor.PID {
 	a := DictionaryCacheActor{ClusterName: clusterName, NodeName: nodeName}
-	a.Init()
+	a.Init(usePersistence)
 	props := actor.FromInstance(&a)
 	return actor.Spawn(props)
 }
@@ -144,9 +144,13 @@ type DictionaryCacheActor struct {
 }
 
 // Init restores cache entries snapshot from DB.
-func (a *DictionaryCacheActor) Init() {
+func (a *DictionaryCacheActor) Init(usePersistence bool) {
 	a.Cache = cache.DictionaryCache{Map: make(map[string]cache.DictionaryCacheEntry)}
-	a.DB = repo.DictionaryCacheRepository{Host: "localhost", DBName: a.ClusterName, ColName: a.NodeName}
+	if usePersistence {
+		a.DB = repo.DictionaryCacheRepository{Host: "localhost", DBName: a.ClusterName, ColName: a.NodeName}
+	} else {
+		a.DB = repo.EmptyDictionaryCacheRepository{}
+	}
 	a.restoreSnapshot()
 }
 

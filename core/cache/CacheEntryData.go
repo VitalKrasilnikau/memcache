@@ -38,6 +38,5 @@ func UpdateCacheEntryData(v CacheEntryData) CacheEntryData {
 
 // IsCacheEntryExpired returns true if ttl defined for this entry had elapced.
 func IsCacheEntryExpired(v CacheEntryData) bool {
-	now := time.Now().Unix()
-	return v.ExpireAfter != 0 && now > v.ExpireAfter
+	return v.ExpireAfter != 0 && time.Now().Unix() > v.ExpireAfter
 }

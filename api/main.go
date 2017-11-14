@@ -4,6 +4,7 @@ import (
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/VitalKrasilnikau/memcache/api/controllers"
 	_ "github.com/VitalKrasilnikau/memcache/api/docs"
+	"github.com/VitalKrasilnikau/memcache/api/utils"
 	"github.com/VitalKrasilnikau/memcache/core/actors"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
@@ -293,9 +294,10 @@ func DeleteDictionaryCacheValueHandler(pid *actor.PID) func(*gin.Context) {
 // @version 1.0
 // @description This is a memory cache based on Go.
 func main() {
-	pid, bpid, cpid := act.NewStringCacheActorCluster("memcache", 10)
-	lpid, lbpid, lcpid := act.NewListCacheActorCluster("memcache", 10)
-	dpid, dbpid, dcpid := act.NewDictionaryCacheActorCluster("memcache", 10)
+	args := api.NewCommandArgs()
+	pid, bpid, cpid := act.NewStringCacheActorCluster("memcache", 10, args.UsePersistence)
+	lpid, lbpid, lcpid := act.NewListCacheActorCluster("memcache", 10, args.UsePersistence)
+	dpid, dbpid, dcpid := act.NewDictionaryCacheActorCluster("memcache", 10, args.UsePersistence)
 	router := gin.Default()
 	api := router.Group("/api")
 	{
@@ -338,10 +340,12 @@ func main() {
 			bpid.Stop()
 			lbpid.Stop()
 			dbpid.Stop()
-			time.Sleep(1 * time.Second)
+			if args.UsePersistence {
+				time.Sleep(1 * time.Second)
+			}
 			os.Exit(0)
 		}
 	}()
 
-	router.Run(":8080")
+	router.Run(":" + args.Port)
 }

@@ -84,3 +84,17 @@ func (r StringCacheRepository) SaveAll(newEntries []StringCacheDBEntry, updatedE
 	}
 	log.Printf("[StringCacheDBEntry] Persisted data to %s.%s successfully.", r.DBName, r.ColName)
 }
+
+// EmptyStringCacheRepository for testing only.
+type EmptyStringCacheRepository struct {
+
+}
+
+// GetAll returns empty cache snapshot.
+func (r EmptyStringCacheRepository) GetAll() []StringCacheDBEntry {
+	return make([]StringCacheDBEntry, 0)
+}
+
+// SaveAll saves nothing.
+func (r EmptyStringCacheRepository) SaveAll(newEntries []StringCacheDBEntry, updatedEntries []StringCacheDBEntry) {
+}

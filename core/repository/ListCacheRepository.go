@@ -84,3 +84,16 @@ func (r ListCacheRepository) SaveAll(newEntries []ListCacheDBEntry, updatedEntri
 	}
 	log.Printf("[ListCacheDBEntry] Persisted data to %s.%s successfully.", r.DBName, r.ColName)
 }
+
+// EmptyListCacheRepository for testing only.
+type EmptyListCacheRepository struct {
+}
+
+// GetAll returns empty cache.
+func (r EmptyListCacheRepository) GetAll() []ListCacheDBEntry {
+	return make([]ListCacheDBEntry, 0)
+}
+
+// SaveAll saves nothing.
+func (r EmptyListCacheRepository) SaveAll(newEntries []ListCacheDBEntry, updatedEntries []ListCacheDBEntry) {
+}
