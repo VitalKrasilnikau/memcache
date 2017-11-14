@@ -23,6 +23,15 @@ Web REST API is available for the following cache operations. The API is based o
 ![swagger](https://raw.githubusercontent.com/VitalKrasilnikau/memcache/master/swagger.png)
 
 Swagger endpoint is available on `/swagger/index.html` route.
+
+The following endpoints support TTL options in the payload:
+
+1. `POST /api/string`
+1. `POST /api/list`
+1. `POST /api/dictionary`
+
+TTL field is a string which can have values in two possible formats: `hh:mm` or `hh:mm:ss`. If the field is not specified or malformed, TTL is set to zero which means no expiration.
+
 At this moment not all endpoints can be tested from swagger UI due to some issues in Gin-swagger, please use `curl` or Go API cache client.
 
 ## Build the project
