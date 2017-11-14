@@ -20,7 +20,7 @@ When some data was successfully restored the following message is printed in the
 
 Web REST API is available for the following cache operations. The API is based on **Gin** and **Gin-swagger**.
 
-
+![swagger](https://raw.githubusercontent.com/VitalKrasilnikau/memcache/master/swagger.png)
 
 Swagger endpoint is available on `/swagger/index.html` route.
 At this moment not all endpoints can be tested from swagger UI due to some issues in Gin-swagger, please use `curl` or Go API cache client.
@@ -33,13 +33,13 @@ At this moment not all endpoints can be tested from swagger UI due to some issue
 
 Run the following line to start memory cache server on port 8080 and MongoDB persistence:
 
-`$ sudo mongod &`
-`$ ./main`
+1. `$ sudo mongod &`
+1. `$ ./main`
 
 Run the following line to start memory cache server custom port and MongoDB persistence:
 
-`$ sudo mongod &`
-`$ ./main %PORT%`
+1. `$ sudo mongod &`
+1. `$ ./main %PORT%`
 
 Run the following line to start memory cache server custom port and without MongoDB persistence:
 
