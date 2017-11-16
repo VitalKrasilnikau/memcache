@@ -7,6 +7,7 @@ import(
 	"time"
 	"strings"
 	"strconv"
+	"fmt"
 )
 
 // Error is 500 status response handler.
@@ -37,6 +38,11 @@ func Created(c *gin.Context) {
 // OK is 200 status response handler.
 func OK(c *gin.Context, obj interface{}) {
 	c.JSON(http.StatusOK, obj)
+}
+
+// DurationToString converts Go duration into string of format hh:mm:ss
+func DurationToString(ttl time.Duration) string {
+	return fmt.Sprintf("%.0f:%.0f:%.0f", ttl.Hours(), ttl.Minutes(), ttl.Seconds())
 }
 
 // ParseDuration converts string values like "01:05:20" or "11:05" (hh:mm) to go duration.

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"time"
 	"fmt"
 	"github.com/VitalKrasilnikau/memcache/client/apiclient"
 )
@@ -16,6 +17,32 @@ func main() {
 
 	keys, err = apiClient.GetDictionaryKeys()
 	printKeys(keys, err, "dictionary keys:")
+
+	b, dkey, err := apiClient.GetDictionaryKey("string")
+	if b {
+		printJSON(dkey, err)
+	}
+
+	ok, e, err := apiClient.PostStringKey("test123", "val", 0 * time.Second)
+	if !ok {
+		fmt.Println("sdf"+e.Status)
+	}
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	b, skey, err := apiClient.GetStringKey("test123")
+	if b {
+		printJSON(skey, err)
+	}
+}
+
+func printJSON(keyObj interface{}, err error) {
+	if err == nil {
+		fmt.Printf("\t%+v\n", keyObj)
+	} else {
+		fmt.Println(err.Error())
+	}
 }
 
 func printKeys(keys []string, err error, message string) {
