@@ -61,3 +61,14 @@ Run the following line to start memory cache server on port 8080 and without Mon
 Press `CTRL-C` to stop the server.
 
 ## API cache client
+
+ApiClient is a go client for the cache REST API. It is implemented using **resty** lib with HTTP mode switched on to allow redirects.
+
+Example:
+
+```go
+apiClient := apiclient.APIClient{Host:"http://localhost", Port:8080}
+keys, err := apiClient.GetStringKeys()
+```
+
+See details in `/client` folder.
