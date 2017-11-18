@@ -1,19 +1,19 @@
 package main
 
 import (
-	"time"
 	"fmt"
-	"github.com/VitalKrasilnikau/memcache/client/apiclient"
 	"github.com/VitalKrasilnikau/memcache/api/contracts"
+	"github.com/VitalKrasilnikau/memcache/client/apiclient"
+	"time"
 )
 
 func main() {
-	apiClient := apiclient.APIClient{Host:"http://localhost", Port:8080}
+	apiClient := apiclient.APIClient{Host: "http://localhost", Port: 8080}
 	{
 		stringKey := "test123"
 
 		// Create new string value in the cache
-		ok, e, err := apiClient.PostStringKey(stringKey, "val", 0 * time.Second)
+		ok, e, err := apiClient.PostStringKey(stringKey, "val", 0*time.Second)
 		if !ok {
 			fmt.Println(e.Status)
 		} else {
@@ -65,7 +65,7 @@ func main() {
 		listKey := "list123"
 
 		// Create new list in the cache
-		ok, e, err := apiClient.PostListKey(listKey, []string { "val1" }, 0 * time.Second)
+		ok, e, err := apiClient.PostListKey(listKey, []string{"val1"}, 0*time.Second)
 		if !ok {
 			fmt.Println(e.Status)
 		} else {
@@ -141,8 +141,8 @@ func main() {
 		// Create new dictionary in the cache
 		ok, e, err := apiClient.PostDictionaryKey(
 			dictionaryKey,
-			[]contracts.DictionaryKeyValueContract{contracts.DictionaryKeyValueContract{Key:"key1", Value:"val1"}},
-			0 * time.Second)
+			[]contracts.DictionaryKeyValueContract{contracts.DictionaryKeyValueContract{Key: "key1", Value: "val1"}},
+			0*time.Second)
 		if !ok {
 			fmt.Println(e.Status)
 		} else {
@@ -159,7 +159,7 @@ func main() {
 		}
 
 		// Add new value to the dictionary
-		b, res, err := apiClient.PostDictionaryValue(dictionaryKey, contracts.DictionaryKeyValueContract{ Key: "key2", Value:"val2" })
+		b, res, err := apiClient.PostDictionaryValue(dictionaryKey, contracts.DictionaryKeyValueContract{Key: "key2", Value: "val2"})
 		if !b {
 			printJSON(res, err)
 		} else {
@@ -167,7 +167,7 @@ func main() {
 		}
 
 		// Modify first value in the dictionary
-		b, res, err = apiClient.PutDictionaryValue(dictionaryKey, "key1", contracts.UpdateDictionaryCacheValueContract{ Original:"val1", Value:"val3"})
+		b, res, err = apiClient.PutDictionaryValue(dictionaryKey, "key1", contracts.UpdateDictionaryCacheValueContract{Original: "val1", Value: "val3"})
 		if !b {
 			printJSON(res, err)
 		} else {

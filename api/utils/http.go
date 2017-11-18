@@ -1,13 +1,13 @@
 package api
 
-import(
+import (
+	"fmt"
+	"github.com/VitalKrasilnikau/memcache/api/contracts"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"github.com/VitalKrasilnikau/memcache/api/contracts"
-	"time"
-	"strings"
 	"strconv"
-	"fmt"
+	"strings"
+	"time"
 )
 
 // Error is 500 status response handler.
@@ -48,35 +48,35 @@ func DurationToString(ttl time.Duration) string {
 // ParseDuration converts string values like "01:05:20" or "11:05" (hh:mm) to go duration.
 func ParseDuration(durationString string) time.Duration {
 	if durationString == "" {
-		return 0;
+		return 0
 	}
 	parts := strings.Split(durationString, ":")
-	switch (len(parts)) {
+	switch len(parts) {
 	case 2:
-		h, e := strconv.Atoi(parts[0]);
+		h, e := strconv.Atoi(parts[0])
 		if e != nil || h < 0 || h > 23 {
-			return 0;
+			return 0
 		}
-		m, e := strconv.Atoi(parts[1]);
+		m, e := strconv.Atoi(parts[1])
 		if e != nil || m < 0 || m > 59 {
-			return 0;
+			return 0
 		}
-		return time.Duration(h) * time.Hour + time.Duration(m) * time.Minute;
+		return time.Duration(h)*time.Hour + time.Duration(m)*time.Minute
 	case 3:
-		h, e := strconv.Atoi(parts[0]);
+		h, e := strconv.Atoi(parts[0])
 		if e != nil || h < 0 || h > 23 {
-			return 0;
+			return 0
 		}
-		m, e := strconv.Atoi(parts[1]);
-		if e != nil || m < 0 || m > 59  {
-			return 0;
+		m, e := strconv.Atoi(parts[1])
+		if e != nil || m < 0 || m > 59 {
+			return 0
 		}
-		s, e := strconv.Atoi(parts[2]);
-		if e != nil || s < 0 || s > 59  {
-			return 0;
+		s, e := strconv.Atoi(parts[2])
+		if e != nil || s < 0 || s > 59 {
+			return 0
 		}
-		return time.Duration(h) * time.Hour + time.Duration(m) * time.Minute + time.Duration(s) * time.Second;
+		return time.Duration(h)*time.Hour + time.Duration(m)*time.Minute + time.Duration(s)*time.Second
 	default:
-		return 0;
+		return 0
 	}
 }

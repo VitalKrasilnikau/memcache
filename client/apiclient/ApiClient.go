@@ -1,23 +1,23 @@
 package apiclient
 
 import (
-	"time"
-	"gopkg.in/resty.v1"
+	"encoding/json"
+	"fmt"
 	"github.com/VitalKrasilnikau/memcache/api/contracts"
 	"github.com/VitalKrasilnikau/memcache/api/utils"
+	"gopkg.in/resty.v1"
 	"log"
-	"fmt"
-	"encoding/json"
+	"time"
 )
 
 const (
-	stringEndpoint = "string/"
-	listEndpoint = "list/"
+	stringEndpoint     = "string/"
+	listEndpoint       = "list/"
 	dictionaryEndpoint = "dictionary/"
 )
 
 // APIClient is a go client lib for accessing memory cache.
-type APIClient struct{
+type APIClient struct {
 	Host string
 	Port int32
 }
@@ -52,7 +52,7 @@ func (c APIClient) PostStringKey(key string, value string, ttl time.Duration) (b
 
 // PutStringKey updates string key with new value in the cache.
 func (c APIClient) PutStringKey(key string, newValue string, originalValue string) (bool, contracts.ErrorContract, error) {
-	req := contracts.UpdateStringCacheValueContract{NewValue: newValue, OriginalValue:originalValue}
+	req := contracts.UpdateStringCacheValueContract{NewValue: newValue, OriginalValue: originalValue}
 	resp, err := resty.SetHTTPMode().R().
 		SetBody(req).
 		Put(c.buildURL(stringEndpoint + key))
@@ -116,7 +116,7 @@ func (c APIClient) PutListValue(key string, newValue string, originalValue strin
 	req := contracts.UpdateListCacheValueContract{Value: newValue}
 	resp, err := resty.SetHTTPMode().R().
 		SetBody(req).
-		Put(c.buildURL(fmt.Sprintf("%s%s/%s", listEndpoint, key, originalValue)));
+		Put(c.buildURL(fmt.Sprintf("%s%s/%s", listEndpoint, key, originalValue)))
 	return c.processResponse(resp, err, 204)
 }
 
@@ -151,9 +151,9 @@ func (c APIClient) DeleteDictionaryValue(key string, value string) (bool, contra
 
 // PostDictionaryKey adds new dictionary key and value to the cache.
 func (c APIClient) PostDictionaryKey(
-		key string,
-		values []contracts.DictionaryKeyValueContract,
-		ttl time.Duration) (bool, contracts.ErrorContract, error) {
+	key string,
+	values []contracts.DictionaryKeyValueContract,
+	ttl time.Duration) (bool, contracts.ErrorContract, error) {
 	req := contracts.NewDictionaryCacheValuesContract{Key: key, Values: values, TTL: api.DurationToString(ttl)}
 	resp, err := resty.SetHTTPMode().R().
 		SetBody(req).
@@ -163,10 +163,10 @@ func (c APIClient) PostDictionaryKey(
 
 // PostDictionaryValue adds new value to the dictionary in the cache.
 func (c APIClient) PostDictionaryValue(
-		key string,
-		value contracts.DictionaryKeyValueContract) (bool, contracts.ErrorContract, error) {
+	key string,
+	value contracts.DictionaryKeyValueContract) (bool, contracts.ErrorContract, error) {
 	resp, err := resty.SetHTTPMode().R().
-		SetBody(contracts.AddDictionaryCacheValueContract{ Value: value}).
+		SetBody(contracts.AddDictionaryCacheValueContract{Value: value}).
 		Post(c.buildURL(dictionaryEndpoint + key))
 	return c.processResponse(resp, err, 201)
 }
@@ -175,7 +175,7 @@ func (c APIClient) PostDictionaryValue(
 func (c APIClient) PutDictionaryValue(key string, subKey string, value contracts.UpdateDictionaryCacheValueContract) (bool, contracts.ErrorContract, error) {
 	resp, err := resty.SetHTTPMode().R().
 		SetBody(value).
-		Put(c.buildURL(fmt.Sprintf("%s%s/%s", dictionaryEndpoint, key, subKey)));
+		Put(c.buildURL(fmt.Sprintf("%s%s/%s", dictionaryEndpoint, key, subKey)))
 	return c.processResponse(resp, err, 204)
 }
 
@@ -184,16 +184,16 @@ func (c APIClient) processResponse(resp *resty.Response, err error, expectedCode
 		log.Fatal("get failed: " + err.Error())
 		return false, contracts.ErrorContract{}, err
 	}
-	if (resp.StatusCode() != expectedCode) {
+	if resp.StatusCode() != expectedCode {
 		log.Printf(fmt.Sprintf("status: %d, code: %s", resp.StatusCode(), resp.Status()))
 		var reply contracts.ErrorContract
 		if err = json.Unmarshal(resp.Body(), &reply); err != nil {
 			log.Fatal("unmarshal failed: " + err.Error())
 			return false, contracts.ErrorContract{}, err
 		}
-		return false, reply, nil;
+		return false, reply, nil
 	}
-	return true, contracts.ErrorContract{}, nil;
+	return true, contracts.ErrorContract{}, nil
 }
 
 func (c APIClient) getKey(endpoint string) (*resty.Response, error) {
@@ -218,7 +218,7 @@ func (c APIClient) getKeys(endpoint string) ([]string, error) {
 		log.Fatal("unmarshal failed: " + err.Error())
 		return nil, err
 	}
-	return reply.Keys, nil;
+	return reply.Keys, nil
 }
 
 func (c APIClient) buildURL(endpoint string) string {
@@ -226,6 +226,6 @@ func (c APIClient) buildURL(endpoint string) string {
 }
 
 func (c APIClient) deleteKey(endpoint string) (bool, contracts.ErrorContract, error) {
-	resp, err := resty.SetHTTPMode().R().Delete(c.buildURL(endpoint));
+	resp, err := resty.SetHTTPMode().R().Delete(c.buildURL(endpoint))
 	return c.processResponse(resp, err, 204)
 }
