@@ -10,7 +10,7 @@ import (
 func NewStringCacheActorCluster(clusterName string, nodeNumber int, usePersistence bool) (*actor.PID, *BroadcastStopGroup, *BroadcastStringKeysGroup) {
 	var nodes = make([]*actor.PID, nodeNumber)
 	for i := 0; i < nodeNumber; i++ {
-		nodes[i] = NewStringCacheActor(clusterName, fmt.Sprintf("strings%d", i), usePersistence)
+		nodes[i] = factory.CreateStringCacheActor(clusterName, fmt.Sprintf("strings%d", i), usePersistence)
 	}
 	return actor.Spawn(router.NewConsistentHashGroup(nodes...)),
 		NewBroadcastStopGroup(nodes),

@@ -10,7 +10,7 @@ import (
 func NewDictionaryCacheActorCluster(clusterName string, nodeNumber int, usePersistence bool) (*actor.PID, *BroadcastStopGroup, *BroadcastStringKeysGroup) {
 	var nodes = make([]*actor.PID, nodeNumber)
 	for i := 0; i < nodeNumber; i++ {
-		nodes[i] = NewDictionaryCacheActor(clusterName, fmt.Sprintf("dictionaries%d", i), usePersistence)
+		nodes[i] = factory.CreateDictionaryCacheActor(clusterName, fmt.Sprintf("dictionaries%d", i), usePersistence)
 	}
 	return actor.Spawn(router.NewConsistentHashGroup(nodes...)),
 		NewBroadcastStopGroup(nodes),

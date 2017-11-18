@@ -127,31 +127,12 @@ type PostDictionaryCacheValueReply struct {
 	AddedValue cache.KeyValue
 }
 
-// NewDictionaryCacheActor is a constructor function for DictionaryCacheActor.
-func NewDictionaryCacheActor(clusterName string, nodeName string, usePersistence bool) *actor.PID {
-	a := DictionaryCacheActor{ClusterName: clusterName, NodeName: nodeName}
-	a.Init(usePersistence)
-	props := actor.FromInstance(&a)
-	return actor.Spawn(props)
-}
-
 // DictionaryCacheActor manages partitioned dictionary cache and its persistence.
 type DictionaryCacheActor struct {
 	ClusterName string
 	NodeName    string
 	Cache       cache.IDictionaryCache
 	DB          repo.IDictionaryCacheRepository
-}
-
-// Init restores cache entries snapshot from DB.
-func (a *DictionaryCacheActor) Init(usePersistence bool) {
-	a.Cache = cache.DictionaryCache{Map: make(map[string]cache.DictionaryCacheEntry)}
-	if usePersistence {
-		a.DB = repo.DictionaryCacheRepository{Host: "localhost", DBName: a.ClusterName, ColName: a.NodeName}
-	} else {
-		a.DB = repo.EmptyDictionaryCacheRepository{}
-	}
-	a.restoreSnapshot()
 }
 
 // Receive is DictionaryCacheActor messages handler.
@@ -221,7 +202,7 @@ func (a *DictionaryCacheActor) persistSnapshot() {
 		ok, v := a.Cache.TryGetSnapshot(k)
 		if ok {
 			mappedItem := repo.DictionaryCacheDBEntry{
-				Key: k,
+				Key:         k,
 				Values:      toDB(cache.FromMap(v.Map)),
 				Added:       v.CacheEntryData.Added,
 				Updated:     v.CacheEntryData.Updated,

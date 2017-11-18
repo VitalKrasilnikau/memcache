@@ -126,31 +126,12 @@ type PostListCacheValueReply struct {
 	AddedValue string
 }
 
-// NewListCacheActor is a constructor function for ListCacheActor.
-func NewListCacheActor(clusterName string, nodeName string, usePersistence bool) *actor.PID {
-	a := ListCacheActor{ClusterName: clusterName, NodeName: nodeName}
-	a.Init(usePersistence)
-	props := actor.FromInstance(&a)
-	return actor.Spawn(props)
-}
-
 // ListCacheActor manages partitioned string cache and its persistence.
 type ListCacheActor struct {
 	ClusterName string
 	NodeName    string
 	Cache       cache.IListCache
 	DB          repo.IListCacheRepository
-}
-
-// Init restores cache entries snapshot from DB.
-func (a *ListCacheActor) Init(usePersistence bool) {
-	a.Cache = cache.ListCache{Map: make(map[string]cache.ListCacheEntry)}
-	if usePersistence {
-		a.DB = repo.ListCacheRepository{Host: "localhost", DBName: a.ClusterName, ColName: a.NodeName}
-	} else {
-		a.DB = repo.EmptyListCacheRepository{}
-	}
-	a.restoreSnapshot()
 }
 
 // Receive is ListCacheActor messages handler.

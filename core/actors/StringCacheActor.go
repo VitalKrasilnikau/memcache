@@ -89,31 +89,12 @@ type PutStringCacheKeyReply struct {
 	Success       bool
 }
 
-// NewStringCacheActor is a constructor function for StringCacheActor.
-func NewStringCacheActor(clusterName string, nodeName string, usePersistence bool) *actor.PID {
-	a := StringCacheActor{ClusterName: clusterName, NodeName: nodeName}
-	a.Init(usePersistence)
-	props := actor.FromInstance(&a)
-	return actor.Spawn(props)
-}
-
 // StringCacheActor manages partitioned string cache and its persistence.
 type StringCacheActor struct {
 	ClusterName string
 	NodeName    string
 	Cache       cache.IStringCache
 	DB          repo.IStringCacheRepository
-}
-
-// Init restores cache entries snapshot from DB.
-func (a *StringCacheActor) Init(usePersistence bool) {
-	a.Cache = cache.StringCache{Map: make(map[string]cache.StringCacheEntry)}
-	if usePersistence {
-		a.DB = repo.StringCacheRepository{Host: "localhost", DBName: a.ClusterName, ColName: a.NodeName}
-	} else {
-		a.DB = repo.EmptyStringCacheRepository{}
-	}
-	a.restoreSnapshot()
 }
 
 // Receive is StringCacheActor messages handler.
