@@ -129,10 +129,11 @@ type PostDictionaryCacheValueReply struct {
 
 // DictionaryCacheActor manages partitioned dictionary cache and its persistence.
 type DictionaryCacheActor struct {
-	ClusterName string
-	NodeName    string
-	Cache       cache.IDictionaryCache
-	DB          repo.IDictionaryCacheRepository
+	ClusterName    string
+	NodeName       string
+	Cache          cache.IDictionaryCache
+	CachePersister cache.IDictionaryCachePersistence
+	DB             repo.IDictionaryCacheRepository
 }
 
 // Receive is DictionaryCacheActor messages handler.
@@ -191,7 +192,7 @@ func (a *DictionaryCacheActor) restoreSnapshot() {
 				Updated:     entry.Updated,
 				ExpireAfter: entry.ExpireAfter,
 				Persisted:   true}}
-		a.Cache.TryAddFromSnapshot(entry.Key, mappedItem)
+		a.CachePersister.TryAddFromSnapshot(entry.Key, mappedItem)
 	}
 }
 
@@ -199,14 +200,14 @@ func (a *DictionaryCacheActor) persistSnapshot() {
 	var newItems []repo.DictionaryCacheDBEntry
 	var updatedItems []repo.DictionaryCacheDBEntry
 	for _, k := range a.Cache.GetKeys() {
-		ok, v := a.Cache.TryGetSnapshot(k)
+		ok, v := a.CachePersister.TryGetSnapshot(k)
 		if ok {
 			mappedItem := repo.DictionaryCacheDBEntry{
 				Key:         k,
 				Values:      toDB(cache.FromMap(v.Map)),
-				Added:       v.CacheEntryData.Added,
-				Updated:     v.CacheEntryData.Updated,
-				ExpireAfter: v.CacheEntryData.ExpireAfter}
+				Added:       v.Added,
+				Updated:     v.Updated,
+				ExpireAfter: v.ExpireAfter}
 			if v.Persisted {
 				updatedItems = append(updatedItems, mappedItem)
 			} else {

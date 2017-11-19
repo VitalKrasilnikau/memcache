@@ -128,10 +128,11 @@ type PostListCacheValueReply struct {
 
 // ListCacheActor manages partitioned string cache and its persistence.
 type ListCacheActor struct {
-	ClusterName string
-	NodeName    string
-	Cache       cache.IListCache
-	DB          repo.IListCacheRepository
+	ClusterName    string
+	NodeName       string
+	Cache          cache.IListCache
+	CachePersister cache.IListCachePersistence
+	DB             repo.IListCacheRepository
 }
 
 // Receive is ListCacheActor messages handler.
@@ -190,7 +191,7 @@ func (a *ListCacheActor) restoreSnapshot() {
 				Updated:     entry.Updated,
 				ExpireAfter: entry.ExpireAfter,
 				Persisted:   true}}
-		a.Cache.TryAddFromSnapshot(entry.Key, mappedItem)
+		a.CachePersister.TryAddFromSnapshot(entry.Key, mappedItem)
 	}
 }
 
@@ -198,13 +199,13 @@ func (a *ListCacheActor) persistSnapshot() {
 	var newItems []repo.ListCacheDBEntry
 	var updatedItems []repo.ListCacheDBEntry
 	for _, k := range a.Cache.GetKeys() {
-		ok, v := a.Cache.TryGetSnapshot(k)
+		ok, v := a.CachePersister.TryGetSnapshot(k)
 		if ok {
 			mappedItem := repo.ListCacheDBEntry{
 				Key:         k,
-				Added:       v.CacheEntryData.Added,
-				Updated:     v.CacheEntryData.Updated,
-				ExpireAfter: v.CacheEntryData.ExpireAfter,
+				Added:       v.Added,
+				Updated:     v.Updated,
+				ExpireAfter: v.ExpireAfter,
 				Values:      v.Values}
 			if v.Persisted {
 				updatedItems = append(updatedItems, mappedItem)

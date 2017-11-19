@@ -91,10 +91,11 @@ type PutStringCacheKeyReply struct {
 
 // StringCacheActor manages partitioned string cache and its persistence.
 type StringCacheActor struct {
-	ClusterName string
-	NodeName    string
-	Cache       cache.IStringCache
-	DB          repo.IStringCacheRepository
+	ClusterName    string
+	NodeName       string
+	Cache          cache.IStringCache
+	CachePersister cache.IStringCachePersistence
+	DB             repo.IStringCacheRepository
 }
 
 // Receive is StringCacheActor messages handler.
@@ -137,7 +138,7 @@ func (a *StringCacheActor) restoreSnapshot() {
 				Updated:     entry.Updated,
 				ExpireAfter: entry.ExpireAfter,
 				Persisted:   true}}
-		a.Cache.TryAddFromSnapshot(entry.Key, mappedItem)
+		a.CachePersister.TryAddFromSnapshot(entry.Key, mappedItem)
 	}
 }
 
@@ -145,13 +146,13 @@ func (a *StringCacheActor) persistSnapshot() {
 	var newItems []repo.StringCacheDBEntry
 	var updatedItems []repo.StringCacheDBEntry
 	for _, k := range a.Cache.GetKeys() {
-		ok, v := a.Cache.TryGetSnapshot(k)
+		ok, v := a.CachePersister.TryGetSnapshot(k)
 		if ok {
 			mappedItem := repo.StringCacheDBEntry{
 				Key:         k,
-				Added:       v.CacheEntryData.Added,
-				Updated:     v.CacheEntryData.Updated,
-				ExpireAfter: v.CacheEntryData.ExpireAfter,
+				Added:       v.Added,
+				Updated:     v.Updated,
+				ExpireAfter: v.ExpireAfter,
 				Value:       v.Value}
 			if v.Persisted {
 				updatedItems = append(updatedItems, mappedItem)

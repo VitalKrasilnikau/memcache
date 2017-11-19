@@ -20,14 +20,18 @@ type KeyValue struct {
 // IDictionaryCache is an interface for DictionaryCache.
 type IDictionaryCache interface {
 	TryGet(key string) (bool, []KeyValue)
-	TryGetSnapshot(key string) (bool, DictionaryCacheEntry)
 	TryAdd(key string, values []KeyValue, ttl time.Duration) bool
-	TryAddFromSnapshot(key string, entry DictionaryCacheEntry) bool
 	TryDelete(key string) (bool, []KeyValue)
 	TryUpdateValue(key string, subKey string, newValue string, originalValue string) (bool, []KeyValue)
 	TryDeleteValue(key string, subKey string) (bool, KeyValue)
 	TryAddValue(key string, newValue KeyValue) (bool, []KeyValue)
 	GetKeys() []string
+}
+
+// IDictionaryCachePersistence is an interface for persisting DictionaryCache.
+type IDictionaryCachePersistence interface {
+	TryGetSnapshot(key string) (bool, DictionaryCacheEntry)
+	TryAddFromSnapshot(key string, entry DictionaryCacheEntry) bool
 }
 
 // DictionaryCache is a single-thread in-memory cache based on map[string]DictionaryCacheEntry.
@@ -36,19 +40,19 @@ type DictionaryCache struct {
 }
 
 // TryGet returns the value if contains the key specified.
-func (c DictionaryCache) TryGet(key string) (bool, []KeyValue) {
+func (c *DictionaryCache) TryGet(key string) (bool, []KeyValue) {
 	v, ok := c.getValueWithExpiration(key)
 	return ok, FromMap(v.Map)
 }
 
 // TryGetSnapshot returns the value if contains the key specified.
-func (c DictionaryCache) TryGetSnapshot(key string) (bool, DictionaryCacheEntry) {
+func (c *DictionaryCache) TryGetSnapshot(key string) (bool, DictionaryCacheEntry) {
 	v, ok := c.getValueWithExpiration(key)
 	return ok, v
 }
 
 // TryAdd add new value to the cache by the key specified if the key is not already used.
-func (c DictionaryCache) TryAdd(key string, values []KeyValue, ttl time.Duration) bool {
+func (c *DictionaryCache) TryAdd(key string, values []KeyValue, ttl time.Duration) bool {
 	_, ok := c.getValueWithExpiration(key)
 	if !ok {
 		c.Map[key] = DictionaryCacheEntry{Map: ToMap(values), CacheEntryData: NewCacheEntryData(ttl)}
@@ -57,7 +61,7 @@ func (c DictionaryCache) TryAdd(key string, values []KeyValue, ttl time.Duration
 }
 
 // TryAddFromSnapshot add new value to the cache by the key specified if the key is not already used.
-func (c DictionaryCache) TryAddFromSnapshot(key string, entry DictionaryCacheEntry) bool {
+func (c *DictionaryCache) TryAddFromSnapshot(key string, entry DictionaryCacheEntry) bool {
 	_, ok := c.Map[key]
 	if !ok {
 		c.Map[key] = entry
@@ -66,7 +70,7 @@ func (c DictionaryCache) TryAddFromSnapshot(key string, entry DictionaryCacheEnt
 }
 
 // TryDelete deletes the value by the key specified if the key is already used.
-func (c DictionaryCache) TryDelete(key string) (bool, []KeyValue) {
+func (c *DictionaryCache) TryDelete(key string) (bool, []KeyValue) {
 	v, ok := c.getValueWithExpiration(key)
 	if ok {
 		delete(c.Map, key)
@@ -75,7 +79,7 @@ func (c DictionaryCache) TryDelete(key string) (bool, []KeyValue) {
 }
 
 // TryUpdateValue updates the existing value in the list by the key.
-func (c DictionaryCache) TryUpdateValue(key string, subKey string, newValue string, originalValue string) (bool, []KeyValue) {
+func (c *DictionaryCache) TryUpdateValue(key string, subKey string, newValue string, originalValue string) (bool, []KeyValue) {
 	v, ok := c.getValueWithExpiration(key)
 	if ok {
 		prevValue, exists := v.Map[subKey]
@@ -95,7 +99,7 @@ func (c DictionaryCache) TryUpdateValue(key string, subKey string, newValue stri
 }
 
 // TryDeleteValue deletes the existing value in the list by the key.
-func (c DictionaryCache) TryDeleteValue(key string, subKey string) (bool, KeyValue) {
+func (c *DictionaryCache) TryDeleteValue(key string, subKey string) (bool, KeyValue) {
 	v, ok := c.getValueWithExpiration(key)
 	if ok {
 		del, exists := v.Map[subKey]
@@ -112,7 +116,7 @@ func (c DictionaryCache) TryDeleteValue(key string, subKey string) (bool, KeyVal
 }
 
 // TryAddValue adds the value to the list by the key.
-func (c DictionaryCache) TryAddValue(key string, newValue KeyValue) (bool, []KeyValue) {
+func (c *DictionaryCache) TryAddValue(key string, newValue KeyValue) (bool, []KeyValue) {
 	v, ok := c.getValueWithExpiration(key)
 	if ok {
 		ok2 := addKeyToMap(v.Map, newValue)
@@ -128,7 +132,7 @@ func (c DictionaryCache) TryAddValue(key string, newValue KeyValue) (bool, []Key
 }
 
 // GetKeys returns all the keys in the map.
-func (c DictionaryCache) GetKeys() []string {
+func (c *DictionaryCache) GetKeys() []string {
 	var keySlice []string
 	for key, v := range c.Map {
 		if !IsCacheEntryExpired(v.CacheEntryData) {
@@ -141,7 +145,7 @@ func (c DictionaryCache) GetKeys() []string {
 	return keySlice
 }
 
-func (c DictionaryCache) getValueWithExpiration(key string) (DictionaryCacheEntry, bool) {
+func (c *DictionaryCache) getValueWithExpiration(key string) (DictionaryCacheEntry, bool) {
 	v, ok := c.Map[key]
 	if ok {
 		if IsCacheEntryExpired(v.CacheEntryData) {
