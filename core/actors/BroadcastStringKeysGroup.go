@@ -12,20 +12,41 @@ type BroadcastStringKeysGroup struct {
 	Routee []*actor.PID
 }
 
-// Request selects string keys from all actors in the group.
+// Request selects string keys from all actors in the group in parallel.
 func (g *BroadcastStringKeysGroup) Request(message *GetCacheKeysMessage, timeout time.Duration) (GetCacheKeysReply, error) {
 	var keys []string
 	var errorsStrings []string
 	var resultError error
+	type futureResult struct {
+		reply GetCacheKeysReply
+		e     error
+	}
+	ch := make(chan futureResult, len(g.Routee))
 	for _, pid := range g.Routee {
-		res, e := pid.RequestFuture(message, timeout).Result()
-		if e == nil {
-			s, ok := res.(GetCacheKeysReply)
-			if ok && len(s.Keys) > 0 {
-				keys = append(keys, s.Keys...)
+		go func(pid *actor.PID) {
+			var resp futureResult
+			res, e := pid.RequestFuture(message, timeout).Result()
+			if e == nil {
+				s, ok := res.(GetCacheKeysReply)
+				if ok {
+					resp = futureResult{reply: s}
+				} else {
+					resp = futureResult{e: errors.New("can't convert reply to GetCacheKeysReply")}
+				}
+			} else {
+				resp = futureResult{e: e}
+			}
+			ch <- resp
+		}(pid)
+	}
+	for range g.Routee {
+		res := <-ch
+		if res.e == nil {
+			if len(res.reply.Keys) > 0 {
+				keys = append(keys, res.reply.Keys...)
 			}
 		} else {
-			errorsStrings = append(errorsStrings, e.Error())
+			errorsStrings = append(errorsStrings, res.e.Error())
 		}
 	}
 	if errorsStrings != nil {
