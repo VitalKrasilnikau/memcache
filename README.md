@@ -38,6 +38,7 @@ At this moment not all endpoints can be tested from swagger UI due to some issue
 
 1. `$ go get github.com/VitalKrasilnikau/memcache`
 1. `$ cd src/github.com/VitalKrasilnikau/memcache/`
+1. `$ go get ./...`
 1. `$ go build api/main.go`
 
 ## Run the project
