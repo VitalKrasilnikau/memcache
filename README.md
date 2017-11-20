@@ -35,9 +35,10 @@ TTL field is a string which can have values in two possible formats: `hh:mm` or 
 At this moment not all endpoints can be tested from swagger UI due to some issues in Gin-swagger, please use `curl` or Go API cache client.
 
 ## Build the project
-1.`$ go get github.com/VitalKrasilnikau/memcache`
-1.`$ cd src/github.com/VitalKrasilnikau/memcache/`
-1.`$ go build api/main.go`
+
+1. `$ go get github.com/VitalKrasilnikau/memcache`
+1. `$ cd src/github.com/VitalKrasilnikau/memcache/`
+1. `$ go build api/main.go`
 
 ## Run the project
 
