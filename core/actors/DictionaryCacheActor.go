@@ -10,7 +10,8 @@ import (
 
 // GetDictionaryCacheKeyMessage is used to get the dictionary cache entry.
 type GetDictionaryCacheKeyMessage struct {
-	Key string
+	Key     string
+	ReplyTo *actor.PID
 }
 
 // Hash is used for partitioning in actor cluster.
@@ -32,7 +33,8 @@ func (m *GetDictionaryCacheKeyReply) Hash() string {
 
 // DeleteDictionaryCacheKeyMessage is used to request the cache item deletion.
 type DeleteDictionaryCacheKeyMessage struct {
-	Key string
+	Key     string
+	ReplyTo *actor.PID
 }
 
 // Hash is used for partitioning in actor cluster.
@@ -49,9 +51,10 @@ type DeleteDictionaryCacheKeyReply struct {
 
 // PostDictionaryCacheKeyMessage is used to add new dictionary cache entry.
 type PostDictionaryCacheKeyMessage struct {
-	Key    string
-	Values []cache.KeyValue
-	TTL    time.Duration
+	Key     string
+	Values  []cache.KeyValue
+	TTL     time.Duration
+	ReplyTo *actor.PID
 }
 
 // Hash is used for partitioning in actor cluster.
@@ -76,6 +79,7 @@ type PutDictionaryCacheValueMessage struct {
 	SubKey        string
 	NewValue      string
 	OriginalValue string
+	ReplyTo       *actor.PID
 }
 
 // Hash is used for partitioning in actor cluster.
@@ -93,8 +97,9 @@ type PutDictionaryCacheValueReply struct {
 
 // DeleteDictionaryCacheValueMessage is used to request cache entry update by deleting the original value.
 type DeleteDictionaryCacheValueMessage struct {
-	Key    string
-	SubKey string
+	Key     string
+	SubKey  string
+	ReplyTo *actor.PID
 }
 
 // Hash is used for partitioning in actor cluster.
@@ -113,6 +118,7 @@ type DeleteDictionaryCacheValueReply struct {
 type PostDictionaryCacheValueMessage struct {
 	Key      string
 	NewValue cache.KeyValue
+	ReplyTo  *actor.PID
 }
 
 // Hash is used for partitioning in actor cluster.
@@ -141,11 +147,11 @@ func (a *DictionaryCacheActor) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
 	case *GetDictionaryCacheKeyMessage:
 		ok, v := a.Cache.TryGet(msg.Key)
-		context.Respond(GetDictionaryCacheKeyReply{Key: msg.Key, Values: v, Success: ok})
+		context.Tell(msg.ReplyTo, GetDictionaryCacheKeyReply{Key: msg.Key, Values: v, Success: ok})
 		break
 	case *DeleteDictionaryCacheKeyMessage:
 		ok, v := a.Cache.TryDelete(msg.Key)
-		context.Respond(DeleteDictionaryCacheKeyReply{Key: msg.Key, DeletedValues: v, Success: ok})
+		context.Tell(msg.ReplyTo, DeleteDictionaryCacheKeyReply{Key: msg.Key, DeletedValues: v, Success: ok})
 		log.Printf("[DictionaryCacheActor] Deleted %s", msg.Key)
 		break
 	case *GetCacheKeysMessage:
@@ -153,26 +159,26 @@ func (a *DictionaryCacheActor) Receive(context actor.Context) {
 		break
 	case *PostDictionaryCacheKeyMessage:
 		ok := a.Cache.TryAdd(msg.Key, msg.Values, msg.TTL)
-		context.Respond(PostDictionaryCacheKeyReply{Key: msg.Key, Success: ok})
+		context.Tell(msg.ReplyTo, PostDictionaryCacheKeyReply{Key: msg.Key, Success: ok})
 		log.Printf("[DictionaryCacheActor] Created %s [%v]", msg.Key, msg.TTL)
 		break
 	case *PostDictionaryCacheValueMessage:
 		ok, _ := a.Cache.TryAddValue(msg.Key, msg.NewValue)
-		context.Respond(PostDictionaryCacheValueReply{Key: msg.Key, Success: ok, AddedValue: msg.NewValue})
+		context.Tell(msg.ReplyTo, PostDictionaryCacheValueReply{Key: msg.Key, Success: ok, AddedValue: msg.NewValue})
 		if ok {
 			log.Printf("[DictionaryCacheActor] Added value %s to list %s", msg.NewValue, msg.Key)
 		}
 		break
 	case *PutDictionaryCacheValueMessage:
 		ok, _ := a.Cache.TryUpdateValue(msg.Key, msg.SubKey, msg.NewValue, msg.OriginalValue)
-		context.Respond(PutDictionaryCacheValueReply{Key: msg.Key, Success: ok, NewValue: msg.NewValue, OriginalValue: msg.OriginalValue})
+		context.Tell(msg.ReplyTo, PutDictionaryCacheValueReply{Key: msg.Key, Success: ok, NewValue: msg.NewValue, OriginalValue: msg.OriginalValue})
 		if ok {
 			log.Printf("[DictionaryCacheActor] Updated value %s to %s in list %s", msg.OriginalValue, msg.NewValue, msg.Key)
 		}
 		break
 	case *DeleteDictionaryCacheValueMessage:
 		ok, del := a.Cache.TryDeleteValue(msg.Key, msg.SubKey)
-		context.Respond(DeleteDictionaryCacheValueReply{Key: msg.Key, DeletedValue: del, Success: ok})
+		context.Tell(msg.ReplyTo, DeleteDictionaryCacheValueReply{Key: msg.Key, DeletedValue: del, Success: ok})
 		if ok {
 			log.Printf("[DictionaryCacheActor] Deleted subkey %s in dictionary %s", msg.SubKey, msg.Key)
 		}
