@@ -90,6 +90,7 @@ func (m *PutDictionaryCacheValueMessage) Hash() string {
 // PutDictionaryCacheValueReply is a reply message for PutDictionaryCacheValueMessage.
 type PutDictionaryCacheValueReply struct {
 	Key           string
+	SubKey        string
 	Success       bool
 	NewValue      string
 	OriginalValue string
@@ -110,6 +111,7 @@ func (m *DeleteDictionaryCacheValueMessage) Hash() string {
 // DeleteDictionaryCacheValueReply is a reply message for DeleteDictionaryCacheValueMessage.
 type DeleteDictionaryCacheValueReply struct {
 	Key          string
+	SubKey       string
 	DeletedValue cache.KeyValue
 	Success      bool
 }
@@ -171,14 +173,14 @@ func (a *DictionaryCacheActor) Receive(context actor.Context) {
 		break
 	case *PutDictionaryCacheValueMessage:
 		ok, _ := a.Cache.TryUpdateValue(msg.Key, msg.SubKey, msg.NewValue, msg.OriginalValue)
-		context.Tell(msg.ReplyTo, PutDictionaryCacheValueReply{Key: msg.Key, Success: ok, NewValue: msg.NewValue, OriginalValue: msg.OriginalValue})
+		context.Tell(msg.ReplyTo, PutDictionaryCacheValueReply{Key: msg.Key, Success: ok, NewValue: msg.NewValue, OriginalValue: msg.OriginalValue, SubKey: msg.SubKey})
 		if ok {
 			log.Printf("[DictionaryCacheActor] Updated value %s to %s in list %s", msg.OriginalValue, msg.NewValue, msg.Key)
 		}
 		break
 	case *DeleteDictionaryCacheValueMessage:
 		ok, del := a.Cache.TryDeleteValue(msg.Key, msg.SubKey)
-		context.Tell(msg.ReplyTo, DeleteDictionaryCacheValueReply{Key: msg.Key, DeletedValue: del, Success: ok})
+		context.Tell(msg.ReplyTo, DeleteDictionaryCacheValueReply{Key: msg.Key, DeletedValue: del, Success: ok, SubKey: msg.SubKey})
 		if ok {
 			log.Printf("[DictionaryCacheActor] Deleted subkey %s in dictionary %s", msg.SubKey, msg.Key)
 		}

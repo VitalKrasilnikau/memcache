@@ -10,7 +10,8 @@ import (
 
 // GetStringCacheKeyMessage is used to get the string cache entry.
 type GetStringCacheKeyMessage struct {
-	Key string
+	Key     string
+	ReplyTo *actor.PID
 }
 
 // Hash is used for partitioning in actor cluster.
@@ -32,7 +33,8 @@ func (m *GetStringCacheKeyReply) Hash() string {
 
 // DeleteStringCacheKeyMessage is used to request the cache item deletion.
 type DeleteStringCacheKeyMessage struct {
-	Key string
+	Key     string
+	ReplyTo *actor.PID
 }
 
 // Hash is used for partitioning in actor cluster.
@@ -49,9 +51,10 @@ type DeleteStringCacheKeyReply struct {
 
 // PostStringCacheKeyMessage is used to add new cache entry.
 type PostStringCacheKeyMessage struct {
-	Key   string
-	Value string
-	TTL   time.Duration
+	Key     string
+	Value   string
+	TTL     time.Duration
+	ReplyTo *actor.PID
 }
 
 // Hash is used for partitioning in actor cluster.
@@ -75,6 +78,7 @@ type PutStringCacheKeyMessage struct {
 	Key           string
 	NewValue      string
 	OriginalValue string
+	ReplyTo       *actor.PID
 }
 
 // Hash is used for partitioning in actor cluster.
@@ -103,11 +107,11 @@ func (a *StringCacheActor) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
 	case *GetStringCacheKeyMessage:
 		ok, v := a.Cache.TryGet(msg.Key)
-		context.Respond(GetStringCacheKeyReply{Key: msg.Key, Value: v, Success: ok})
+		context.Tell(msg.ReplyTo, GetStringCacheKeyReply{Key: msg.Key, Value: v, Success: ok})
 		break
 	case *DeleteStringCacheKeyMessage:
 		ok, v := a.Cache.TryDelete(msg.Key)
-		context.Respond(DeleteStringCacheKeyReply{Key: msg.Key, DeletedValue: v, Success: ok})
+		context.Tell(msg.ReplyTo, DeleteStringCacheKeyReply{Key: msg.Key, DeletedValue: v, Success: ok})
 		log.Printf("[StringCacheActor] Deleted %s", msg.Key)
 		break
 	case *GetCacheKeysMessage:
@@ -115,12 +119,12 @@ func (a *StringCacheActor) Receive(context actor.Context) {
 		break
 	case *PostStringCacheKeyMessage:
 		ok := a.Cache.TryAdd(msg.Key, msg.Value, msg.TTL)
-		context.Respond(PostStringCacheKeyReply{Key: msg.Key, Success: ok})
+		context.Tell(msg.ReplyTo, PostStringCacheKeyReply{Key: msg.Key, Success: ok})
 		log.Printf("[StringCacheActor] Created %s [%v]", msg.Key, msg.TTL)
 		break
 	case *PutStringCacheKeyMessage:
 		ok, v := a.Cache.TryUpdate(msg.Key, msg.NewValue, msg.OriginalValue)
-		context.Respond(PutStringCacheKeyReply{Key: msg.Key, OriginalValue: v, Success: ok})
+		context.Tell(msg.ReplyTo, PutStringCacheKeyReply{Key: msg.Key, OriginalValue: v, Success: ok})
 		log.Printf("[StringCacheActor] Updated %s to %s", msg.Key, msg.NewValue)
 		break
 	case *actor.Stopping:

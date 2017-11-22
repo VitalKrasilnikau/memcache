@@ -43,7 +43,7 @@ At this moment not all endpoints can be tested from swagger UI due to some issue
 
 ## Run the project
 
-Run the following line to start memory cache server on port 8080 and MongoDB persistence:
+Run the following line to start memory cache server on port 8080, with 10 actors per cache and MongoDB persistence:
 
 1. `$ sudo mongod &`
 1. `$ ./main`
@@ -53,9 +53,9 @@ Run the following line to start memory cache server custom port and MongoDB pers
 1. `$ sudo mongod &`
 1. `$ ./main %PORT%`
 
-Run the following line to start memory cache server custom port and without MongoDB persistence:
+Run the following line to start memory cache server on custom port, with custom number of actors per cache and without MongoDB persistence:
 
-`$ ./main %PORT% no-db`
+`$ ./main %PORT% no-db %ACTORS_NUMBER%`
 
 Run the following line to start memory cache server on port 8080 and without MongoDB persistence:
 
@@ -75,3 +75,11 @@ keys, err := apiClient.GetStringKeys()
 ```
 
 See details in `/client` folder.
+
+## API cache load test
+
+Run the server with custom number of actors and GOMAXPROCS to have good performance during load test.
+
+`$ GOMAXPROCS=1000 ./main 8080 no-db 1000`
+
+See details in `/loadtest` folder.

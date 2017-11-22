@@ -13,8 +13,8 @@ var (
 )
 
 func main() {
-	numberOfClients := 100
-	numberOfSessions := 1000
+	numberOfClients := 300
+	numberOfSessions := 10000
 	guard := make(chan struct{}, numberOfClients)
 	var wg sync.WaitGroup
 	start := time.Now()
