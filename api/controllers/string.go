@@ -90,36 +90,36 @@ func PutStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 func dispatchStringReply(c *gin.Context, ctx actor.Context, wg *sync.WaitGroup) {
 	switch s := ctx.Message().(type) {
 	case act.GetStringCacheKeyReply:
+		defer wg.Done()
 		if s.Success {
 			api.OK(c, contracts.StringCacheValueContract{Key: s.Key, Value: s.Value})
 		} else {
 			api.NotFound(c, fmt.Sprintf("key '%s' was not found", s.Key))
 		}
-		wg.Done()
 		break
 	case act.DeleteStringCacheKeyReply:
+		defer wg.Done()
 		if s.Success {
 			api.NoContent(c)
 		} else {
 			api.NotFound(c, fmt.Sprintf("key '%s' was not found", s.Key))
 		}
-		wg.Done()
 		break
 	case act.PostStringCacheKeyReply:
+		defer wg.Done()
 		if s.Success {
 			api.Created(c)
 		} else {
 			api.Bad(c, fmt.Sprintf("key '%s' was already used", s.Key))
 		}
-		wg.Done()
 		break
 	case act.PutStringCacheKeyReply:
+		defer wg.Done()
 		if s.Success {
 			api.NoContent(c)
 		} else {
 			api.Bad(c, fmt.Sprintf("key '%s' was already changed to '%s'", s.Key, s.OriginalValue))
 		}
-		wg.Done()
 		break
 	}
 }

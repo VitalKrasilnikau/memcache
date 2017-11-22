@@ -132,52 +132,52 @@ func DeleteDictionaryCacheValueHandler(pid *actor.PID) func(*gin.Context) {
 func dispatchReply(c *gin.Context, ctx actor.Context, wg *sync.WaitGroup) {
 	switch s := ctx.Message().(type) {
 	case act.GetDictionaryCacheKeyReply:
+		defer wg.Done()
 		if s.Success {
 			api.OK(c, contracts.DictionaryCacheValueContract{Key: s.Key, Values: toDto(s.Values)})
 		} else {
 			api.NotFound(c, fmt.Sprintf("key '%s' was not found", s.Key))
 		}
-		defer wg.Done()
 		break
 	case act.DeleteDictionaryCacheKeyReply:
+		defer wg.Done()
 		if s.Success {
 			api.NoContent(c)
 		} else {
 			api.NotFound(c, fmt.Sprintf("key '%s' was not found", s.Key))
 		}
-		defer wg.Done()
 		break
 	case act.PostDictionaryCacheKeyReply:
+		defer wg.Done()
 		if s.Success {
 			api.Created(c)
 		} else {
 			api.Bad(c, fmt.Sprintf("key '%s' was already used", s.Key))
 		}
-		defer wg.Done()
 		break
 	case act.PutDictionaryCacheValueReply:
+		defer wg.Done()
 		if s.Success {
 			api.NoContent(c)
 		} else {
 			api.Bad(c, fmt.Sprintf("dictionary subkey '%s' of key '%s' was already changed or never existed", s.SubKey, s.Key))
 		}
-		defer wg.Done()
 		break
 	case act.PostDictionaryCacheValueReply:
+		defer wg.Done()
 		if s.Success {
 			api.Created(c)
 		} else {
 			api.Bad(c, fmt.Sprintf("key '%s' was not found", s.Key))
 		}
-		defer wg.Done()
 		break
 	case act.DeleteDictionaryCacheValueReply:
+		defer wg.Done()
 		if s.Success {
 			api.NoContent(c)
 		} else {
 			api.Bad(c, fmt.Sprintf("dictionary value '%s' of key '%s' was already deleted or never existed", s.SubKey, s.Key))
 		}
-		defer wg.Done()
 		break
 	}
 }

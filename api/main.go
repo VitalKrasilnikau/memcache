@@ -1,7 +1,6 @@
 package main
 
 import (
-	"runtime"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/VitalKrasilnikau/memcache/api/controllers"
 	_ "github.com/VitalKrasilnikau/memcache/api/docs"
@@ -295,11 +294,11 @@ func DeleteDictionaryCacheValueHandler(pid *actor.PID) func(*gin.Context) {
 // @version 1.0
 // @description This is a memory cache based on Go.
 func main() {
-	runtime.GOMAXPROCS(1000)
 	args := api.NewCommandArgs()
 	pid, bpid, cpid := act.NewStringCacheActorCluster("memcache", args.ActorNumber, args.UsePersistence)
 	lpid, lbpid, lcpid := act.NewListCacheActorCluster("memcache", args.ActorNumber, args.UsePersistence)
-	dpid, dbpid, dcpid := act.NewDictionaryCacheActorCluster("memcache", 1000, args.UsePersistence)
+	dpid, dbpid, dcpid := act.NewDictionaryCacheActorCluster("memcache", args.ActorNumber, args.UsePersistence)
+	log.Printf("Started with %d actors per cache", args.ActorNumber)
 	router := gin.Default()
 	api := router.Group("/api")
 	{
