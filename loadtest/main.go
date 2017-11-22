@@ -84,11 +84,12 @@ func simulate(index int) {
 		printJSON(dkey, err)
 	}
 
+	// TODO: switch to Await
 	// List all dictionary keys
-	keys, err := apiClient.GetDictionaryKeys()
+	/*keys, err := apiClient.GetDictionaryKeys()
 	if err != nil {
 		printKeys(keys, err, "dictionary keys:")
-	}
+	}*/
 
 	// Delete the dictionary value by the key
 	b, res, err = apiClient.DeleteDictionaryKey(dictionaryKey)

@@ -1,5 +1,6 @@
 package controllers
 
+// TODO: switch to Await
 import (
 	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
