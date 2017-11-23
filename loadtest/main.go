@@ -84,12 +84,14 @@ func simulate(index int) {
 		printJSON(dkey, err)
 	}
 
-	// TODO: switch to Await
 	// List all dictionary keys
-	/*keys, err := apiClient.GetDictionaryKeys()
-	if err != nil {
-		printKeys(keys, err, "dictionary keys:")
-	}*/
+	// Hard operation, make it one time per 100 requests
+	if index % 100 == 0 {
+		keys, err := apiClient.GetDictionaryKeys()
+		if err != nil {
+			printKeys(keys, err, "dictionary keys:")
+		}
+	}
 
 	// Delete the dictionary value by the key
 	b, res, err = apiClient.DeleteDictionaryKey(dictionaryKey)

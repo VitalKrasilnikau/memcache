@@ -115,7 +115,7 @@ func (a *StringCacheActor) Receive(context actor.Context) {
 		log.Printf("[StringCacheActor] Deleted %s", msg.Key)
 		break
 	case *GetCacheKeysMessage:
-		context.Respond(GetCacheKeysReply{Keys: a.Cache.GetKeys()})
+		context.Tell(msg.ReplyTo, GetCacheKeysReply{Keys: a.Cache.GetKeys()})
 		break
 	case *PostStringCacheKeyMessage:
 		ok := a.Cache.TryAdd(msg.Key, msg.Value, msg.TTL)

@@ -15,7 +15,7 @@ import (
 func GetDictionaryCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Param("key")
-		Await(
+		act.Await(
 			pid,
 			func(wg *sync.WaitGroup) *actor.PID {
 				return createReplyActor(c, wg)
@@ -30,7 +30,7 @@ func GetDictionaryCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 func DeleteDictionaryCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Param("key")
-		Await(
+		act.Await(
 			pid,
 			func(wg *sync.WaitGroup) *actor.PID {
 				return createReplyActor(c, wg)
@@ -46,7 +46,7 @@ func PostDictionaryCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
 		var json contracts.NewDictionaryCacheValuesContract
 		if err := c.ShouldBindJSON(&json); err == nil {
-			Await(
+			act.Await(
 				pid,
 				func(wg *sync.WaitGroup) *actor.PID {
 					return createReplyActor(c, wg)
@@ -71,7 +71,7 @@ func PutDictionaryCacheValueHandler(pid *actor.PID) func(*gin.Context) {
 		subkey := c.Param("subkey")
 		var json contracts.UpdateDictionaryCacheValueContract
 		if err := c.ShouldBindJSON(&json); err == nil {
-			Await(
+			act.Await(
 				pid,
 				func(wg *sync.WaitGroup) *actor.PID {
 					return createReplyActor(c, wg)
@@ -96,7 +96,7 @@ func PostDictionaryCacheValueHandler(pid *actor.PID) func(*gin.Context) {
 		key := c.Param("key")
 		var json contracts.AddDictionaryCacheValueContract
 		if err := c.ShouldBindJSON(&json); err == nil {
-			Await(
+			act.Await(
 				pid,
 				func(wg *sync.WaitGroup) *actor.PID {
 					return createReplyActor(c, wg)
@@ -118,7 +118,7 @@ func DeleteDictionaryCacheValueHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Param("key")
 		value := c.Param("subkey")
-		Await(
+		act.Await(
 			pid,
 			func(wg *sync.WaitGroup) *actor.PID {
 				return createReplyActor(c, wg)

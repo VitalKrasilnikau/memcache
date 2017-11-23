@@ -14,7 +14,7 @@ import (
 func GetStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Param("key")
-		Await(
+		act.Await(
 			pid,
 			func(wg *sync.WaitGroup) *actor.PID {
 				return createStringReplyActor(c, wg)
@@ -29,7 +29,7 @@ func GetStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 func DeleteStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Param("key")
-		Await(
+		act.Await(
 			pid,
 			func(wg *sync.WaitGroup) *actor.PID {
 				return createStringReplyActor(c, wg)
@@ -45,7 +45,7 @@ func PostStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
 		var json contracts.NewStringCacheValueContract
 		if err := c.ShouldBindJSON(&json); err == nil {
-			Await(
+			act.Await(
 				pid,
 				func(wg *sync.WaitGroup) *actor.PID {
 					return createStringReplyActor(c, wg)
@@ -69,7 +69,7 @@ func PutStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 		key := c.Param("key")
 		var json contracts.UpdateStringCacheValueContract
 		if err := c.ShouldBindJSON(&json); err == nil {
-			Await(
+			act.Await(
 				pid,
 				func(wg *sync.WaitGroup) *actor.PID {
 					return createStringReplyActor(c, wg)

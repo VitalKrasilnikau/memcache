@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"strings"
-	"time"
+	"sync"
 )
 
 // BroadcastStringKeysGroup holds PIDs of actors to get string keys in the group.
@@ -13,7 +13,7 @@ type BroadcastStringKeysGroup struct {
 }
 
 // Request selects string keys from all actors in the group in parallel.
-func (g *BroadcastStringKeysGroup) Request(message *GetCacheKeysMessage, timeout time.Duration) (GetCacheKeysReply, error) {
+func (g *BroadcastStringKeysGroup) Request() (GetCacheKeysReply, error) {
 	var keys []string
 	var errorsStrings []string
 	var resultError error
@@ -24,19 +24,19 @@ func (g *BroadcastStringKeysGroup) Request(message *GetCacheKeysMessage, timeout
 	ch := make(chan futureResult, len(g.Routee))
 	for _, pid := range g.Routee {
 		go func(pid *actor.PID) {
-			var resp futureResult
-			res, e := pid.RequestFuture(message, timeout).Result()
-			if e == nil {
-				s, ok := res.(GetCacheKeysReply)
-				if ok {
-					resp = futureResult{reply: s}
-				} else {
-					resp = futureResult{e: errors.New("can't convert reply to GetCacheKeysReply")}
-				}
-			} else {
-				resp = futureResult{e: e}
-			}
-			ch <- resp
+			Await(
+				pid,
+				func(wg *sync.WaitGroup) *actor.PID {
+					return actor.Spawn(actor.FromFunc(func(ctx actor.Context) {
+						if s, ok := ctx.Message().(GetCacheKeysReply); ok {
+							resp := futureResult{reply: s}
+							ch <- resp
+						}
+					}))
+				},
+				func(replyPid *actor.PID) interface{} {
+					return &GetCacheKeysMessage{ReplyTo: replyPid}
+				})
 		}(pid)
 	}
 	for range g.Routee {

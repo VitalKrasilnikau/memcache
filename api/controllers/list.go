@@ -1,6 +1,5 @@
 package controllers
 
-// TODO: switch to Await
 import (
 	"fmt"
 	"github.com/AsynkronIT/protoactor-go/actor"
@@ -8,27 +7,21 @@ import (
 	"github.com/VitalKrasilnikau/memcache/api/utils"
 	"github.com/VitalKrasilnikau/memcache/core/actors"
 	"github.com/gin-gonic/gin"
+	"sync"
 )
 
 // GetListCacheKeyHandler API which gets list cache entry by key.
 func GetListCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Param("key")
-		res, e := pid.RequestFuture(&act.GetListCacheKeyMessage{Key: key}, defTimeout).Result()
-		if e == nil {
-			s, ok := res.(act.GetListCacheKeyReply)
-			if ok {
-				if s.Success {
-					api.OK(c, contracts.ListCacheValueContract{Key: s.Key, Values: s.Values})
-				} else {
-					api.NotFound(c, fmt.Sprintf("key '%s' was not found", key))
-				}
-			} else {
-				api.Error(c, "can't parse data")
-			}
-		} else {
-			api.Error(c, e.Error())
-		}
+		act.Await(
+			pid,
+			func(wg *sync.WaitGroup) *actor.PID {
+				return createListReplyActor(c, wg)
+			},
+			func(replyPid *actor.PID) interface{} {
+				return &act.GetListCacheKeyMessage{Key: key, ReplyTo: replyPid}
+			})
 	}
 }
 
@@ -36,21 +29,14 @@ func GetListCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 func DeleteListCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Param("key")
-		res, e := pid.RequestFuture(&act.DeleteListCacheKeyMessage{Key: key}, defTimeout).Result()
-		if e == nil {
-			s, ok := res.(act.DeleteListCacheKeyReply)
-			if ok {
-				if s.Success {
-					api.NoContent(c)
-				} else {
-					api.NotFound(c, fmt.Sprintf("key '%s' was not found", key))
-				}
-			} else {
-				api.Error(c, "can't parse data")
-			}
-		} else {
-			api.Error(c, e.Error())
-		}
+		act.Await(
+			pid,
+			func(wg *sync.WaitGroup) *actor.PID {
+				return createListReplyActor(c, wg)
+			},
+			func(replyPid *actor.PID) interface{} {
+				return &act.DeleteListCacheKeyMessage{Key: key, ReplyTo: replyPid}
+			})
 	}
 }
 
@@ -59,22 +45,18 @@ func PostListCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
 		var json contracts.NewListCacheValuesContract
 		if err := c.ShouldBindJSON(&json); err == nil {
-			message := &act.PostListCacheKeyMessage{Key: json.Key, Values: json.Values, TTL: api.ParseDuration(json.TTL)}
-			res, e := pid.RequestFuture(message, defTimeout).Result()
-			if e == nil {
-				s, ok := res.(act.PostListCacheKeyReply)
-				if ok {
-					if s.Success {
-						api.Created(c)
-					} else {
-						api.Bad(c, fmt.Sprintf("key '%s' was already used", json.Key))
-					}
-				} else {
-					api.Error(c, "can't parse data")
-				}
-			} else {
-				api.Error(c, e.Error())
-			}
+			act.Await(
+				pid,
+				func(wg *sync.WaitGroup) *actor.PID {
+					return createListReplyActor(c, wg)
+				},
+				func(replyPid *actor.PID) interface{} {
+					return &act.PostListCacheKeyMessage{
+						Key:     json.Key,
+						Values:  json.Values,
+						TTL:     api.ParseDuration(json.TTL),
+						ReplyTo: replyPid}
+				})
 		} else {
 			api.Bad(c, fmt.Sprintf("malformed request: %s", err.Error()))
 		}
@@ -88,22 +70,14 @@ func PutListCacheValueHandler(pid *actor.PID) func(*gin.Context) {
 		value := c.Param("value")
 		var json contracts.UpdateListCacheValueContract
 		if err := c.ShouldBindJSON(&json); err == nil {
-			entry := &act.PutListCacheValueMessage{Key: key, NewValue: json.Value, OriginalValue: value}
-			res, e := pid.RequestFuture(entry, defTimeout).Result()
-			if e == nil {
-				s, ok := res.(act.PutListCacheValueReply)
-				if ok {
-					if s.Success {
-						api.NoContent(c)
-					} else {
-						api.Bad(c, fmt.Sprintf("list value '%s' of key '%s' was already changed or never existed", value, key))
-					}
-				} else {
-					api.Error(c, "can't parse data")
-				}
-			} else {
-				api.Error(c, e.Error())
-			}
+			act.Await(
+				pid,
+				func(wg *sync.WaitGroup) *actor.PID {
+					return createListReplyActor(c, wg)
+				},
+				func(replyPid *actor.PID) interface{} {
+					return &act.PutListCacheValueMessage{Key: key, NewValue: json.Value, OriginalValue: value, ReplyTo: replyPid}
+				})
 		} else {
 			api.Bad(c, fmt.Sprintf("malformed request: %s", err.Error()))
 		}
@@ -116,22 +90,14 @@ func PostListCacheValueHandler(pid *actor.PID) func(*gin.Context) {
 		key := c.Param("key")
 		var json contracts.UpdateListCacheValueContract
 		if err := c.ShouldBindJSON(&json); err == nil {
-			entry := &act.PostListCacheValueMessage{Key: key, NewValue: json.Value}
-			res, e := pid.RequestFuture(entry, defTimeout).Result()
-			if e == nil {
-				s, ok := res.(act.PostListCacheValueReply)
-				if ok {
-					if s.Success {
-						api.Created(c)
-					} else {
-						api.Bad(c, fmt.Sprintf("key '%s' was not found", key))
-					}
-				} else {
-					api.Error(c, "can't parse data")
-				}
-			} else {
-				api.Error(c, e.Error())
-			}
+			act.Await(
+				pid,
+				func(wg *sync.WaitGroup) *actor.PID {
+					return createListReplyActor(c, wg)
+				},
+				func(replyPid *actor.PID) interface{} {
+					return &act.PostListCacheValueMessage{Key: key, NewValue: json.Value, ReplyTo: replyPid}
+				})
 		} else {
 			api.Bad(c, fmt.Sprintf("malformed request: %s", err.Error()))
 		}
@@ -143,21 +109,72 @@ func DeleteListCacheValueHandler(pid *actor.PID) func(*gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Param("key")
 		value := c.Param("value")
-		entry := &act.DeleteListCacheValueMessage{Key: key, Value: value}
-		res, e := pid.RequestFuture(entry, defTimeout).Result()
-		if e == nil {
-			s, ok := res.(act.DeleteListCacheValueReply)
-			if ok {
-				if s.Success {
-					api.NoContent(c)
-				} else {
-					api.Bad(c, fmt.Sprintf("list value '%s' of key '%s' was already deleted or never existed", value, key))
-				}
-			} else {
-				api.Error(c, "can't parse data")
-			}
-		} else {
-			api.Error(c, e.Error())
-		}
+		act.Await(
+			pid,
+			func(wg *sync.WaitGroup) *actor.PID {
+				return createListReplyActor(c, wg)
+			},
+			func(replyPid *actor.PID) interface{} {
+				return &act.DeleteListCacheValueMessage{Key: key, Value: value, ReplyTo: replyPid}
+			})
 	}
+}
+
+func dispatchListReply(c *gin.Context, ctx actor.Context, wg *sync.WaitGroup) {
+	switch s := ctx.Message().(type) {
+	case act.GetListCacheKeyReply:
+		defer wg.Done()
+		if s.Success {
+			api.OK(c, contracts.ListCacheValueContract{Key: s.Key, Values: s.Values})
+		} else {
+			api.NotFound(c, fmt.Sprintf("key '%s' was not found", s.Key))
+		}
+		break
+	case act.DeleteListCacheKeyReply:
+		defer wg.Done()
+		if s.Success {
+			api.NoContent(c)
+		} else {
+			api.NotFound(c, fmt.Sprintf("key '%s' was not found", s.Key))
+		}
+		break
+	case act.PostListCacheKeyReply:
+		defer wg.Done()
+		if s.Success {
+			api.Created(c)
+		} else {
+			api.Bad(c, fmt.Sprintf("key '%s' was already used", s.Key))
+		}
+		break
+	case act.PutListCacheValueReply:
+		defer wg.Done()
+		if s.Success {
+			api.NoContent(c)
+		} else {
+			api.Bad(c, fmt.Sprintf("list value '%s' of key '%s' was already changed or never existed", s.OriginalValue, s.Key))
+		}
+		break
+	case act.PostListCacheValueReply:
+		defer wg.Done()
+		if s.Success {
+			api.Created(c)
+		} else {
+			api.Bad(c, fmt.Sprintf("key '%s' was not found", s.Key))
+		}
+		break
+	case act.DeleteListCacheValueReply:
+		defer wg.Done()
+		if s.Success {
+			api.NoContent(c)
+		} else {
+			api.Bad(c, fmt.Sprintf("list value '%s' of key '%s' was already deleted or never existed", s.DeletedValue, s.Key))
+		}
+		break
+	}
+}
+
+func createListReplyActor(c *gin.Context, wg *sync.WaitGroup) *actor.PID {
+	return actor.Spawn(actor.FromFunc(func(ctx actor.Context) {
+		dispatchListReply(c, ctx, wg)
+	}))
 }
