@@ -16,6 +16,7 @@ type CommandArgs struct {
 	UsePersistence bool
 	Port           string
 	ActorNumber    int
+	IsRemote			 bool
 }
 
 // NewCommandArgs parses the console parameters.

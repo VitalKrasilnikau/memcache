@@ -22,7 +22,8 @@ func (f CacheActorFactory) CreateStringCacheActor(clusterName string, nodeName s
 	}
 	a.restoreSnapshot()
 	props := actor.FromInstance(&a)
-	return actor.Spawn(props)
+	pid, _ := actor.SpawnNamed(props, nodeName)
+	return pid
 }
 
 // CreateListCacheActor is a constructor function for ListCacheActor.
@@ -38,7 +39,8 @@ func (f CacheActorFactory) CreateListCacheActor(clusterName string, nodeName str
 	}
 	a.restoreSnapshot()
 	props := actor.FromInstance(&a)
-	return actor.Spawn(props)
+	pid, _ := actor.SpawnNamed(props, nodeName)
+	return pid
 }
 
 // CreateDictionaryCacheActor is a constructor function for DictionaryCacheActor.
@@ -54,5 +56,6 @@ func (f CacheActorFactory) CreateDictionaryCacheActor(clusterName string, nodeNa
 	}
 	a.restoreSnapshot()
 	props := actor.FromInstance(&a)
-	return actor.Spawn(props)
+	pid, _ := actor.SpawnNamed(props, nodeName)
+	return pid
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/remote"
 	"github.com/VitalKrasilnikau/memcache/api/controllers"
 	_ "github.com/VitalKrasilnikau/memcache/api/docs"
 	"github.com/VitalKrasilnikau/memcache/api/utils"
@@ -295,9 +296,12 @@ func DeleteDictionaryCacheValueHandler(pid *actor.PID) func(*gin.Context) {
 // @description This is a memory cache based on Go.
 func main() {
 	args := api.NewCommandArgs()
-	pid, bpid, cpid := act.NewStringCacheActorCluster("memcache", args.ActorNumber, args.UsePersistence)
-	lpid, lbpid, lcpid := act.NewListCacheActorCluster("memcache", args.ActorNumber, args.UsePersistence)
-	dpid, dbpid, dcpid := act.NewDictionaryCacheActorCluster("memcache", args.ActorNumber, args.UsePersistence)
+	if args.IsRemote {
+		remote.Start("127.0.0.1:0")
+	}
+	pid, bpid, cpid := act.NewStringCacheActorCluster("memcache", args.ActorNumber, args.UsePersistence, args.IsRemote)
+	lpid, lbpid, lcpid := act.NewListCacheActorCluster("memcache", args.ActorNumber, args.UsePersistence, args.IsRemote)
+	dpid, dbpid, dcpid := act.NewDictionaryCacheActorCluster("memcache", args.ActorNumber, args.UsePersistence, args.IsRemote)
 	log.Printf("Started with %d actors per cache", args.ActorNumber)
 	router := gin.Default()
 	api := router.Group("/api")
