@@ -11,7 +11,6 @@ import (
 // GetListCacheKeyMessage is used to get the list cache entry.
 type GetListCacheKeyMessage struct {
 	Key     string
-	ReplyTo *actor.PID
 }
 
 // Hash is used for partitioning in actor cluster.
@@ -34,7 +33,6 @@ func (m *GetListCacheKeyReply) Hash() string {
 // DeleteListCacheKeyMessage is used to request the cache item deletion.
 type DeleteListCacheKeyMessage struct {
 	Key     string
-	ReplyTo *actor.PID
 }
 
 // Hash is used for partitioning in actor cluster.
@@ -54,7 +52,6 @@ type PostListCacheKeyMessage struct {
 	Key     string
 	Values  []string
 	TTL     time.Duration
-	ReplyTo *actor.PID
 }
 
 // Hash is used for partitioning in actor cluster.
@@ -78,7 +75,6 @@ type PutListCacheValueMessage struct {
 	Key           string
 	NewValue      string
 	OriginalValue string
-	ReplyTo       *actor.PID
 }
 
 // Hash is used for partitioning in actor cluster.
@@ -98,7 +94,6 @@ type PutListCacheValueReply struct {
 type DeleteListCacheValueMessage struct {
 	Key     string
 	Value   string
-	ReplyTo *actor.PID
 }
 
 // Hash is used for partitioning in actor cluster.
@@ -117,7 +112,6 @@ type DeleteListCacheValueReply struct {
 type PostListCacheValueMessage struct {
 	Key      string
 	NewValue string
-	ReplyTo  *actor.PID
 }
 
 // Hash is used for partitioning in actor cluster.
@@ -146,38 +140,38 @@ func (a *ListCacheActor) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
 	case *GetListCacheKeyMessage:
 		ok, v := a.Cache.TryGet(msg.Key)
-		context.Tell(msg.ReplyTo, GetListCacheKeyReply{Key: msg.Key, Values: v, Success: ok})
+		context.Respond(GetListCacheKeyReply{Key: msg.Key, Values: v, Success: ok})
 		break
 	case *DeleteListCacheKeyMessage:
 		ok, v := a.Cache.TryDelete(msg.Key)
-		context.Tell(msg.ReplyTo, DeleteListCacheKeyReply{Key: msg.Key, DeletedValues: v, Success: ok})
+		context.Respond(DeleteListCacheKeyReply{Key: msg.Key, DeletedValues: v, Success: ok})
 		log.Printf("[ListCacheActor] Deleted %s", msg.Key)
 		break
 	case *GetCacheKeysMessage:
-		context.Tell(msg.ReplyTo, GetCacheKeysReply{Keys: a.Cache.GetKeys()})
+		context.Respond(GetCacheKeysReply{Keys: a.Cache.GetKeys()})
 		break
 	case *PostListCacheKeyMessage:
 		ok := a.Cache.TryAdd(msg.Key, msg.Values, msg.TTL)
-		context.Tell(msg.ReplyTo, PostListCacheKeyReply{Key: msg.Key, Success: ok})
+		context.Respond(PostListCacheKeyReply{Key: msg.Key, Success: ok})
 		log.Printf("[ListCacheActor] Created %s [%v]", msg.Key, msg.TTL)
 		break
 	case *PostListCacheValueMessage:
 		ok, _ := a.Cache.TryAddValue(msg.Key, msg.NewValue)
-		context.Tell(msg.ReplyTo, PostListCacheValueReply{Key: msg.Key, Success: ok, AddedValue: msg.NewValue})
+		context.Respond(PostListCacheValueReply{Key: msg.Key, Success: ok, AddedValue: msg.NewValue})
 		if ok {
 			log.Printf("[ListCacheActor] Added value %s to list %s", msg.NewValue, msg.Key)
 		}
 		break
 	case *PutListCacheValueMessage:
 		ok, _ := a.Cache.TryUpdateValue(msg.Key, msg.NewValue, msg.OriginalValue)
-		context.Tell(msg.ReplyTo, PutListCacheValueReply{Key: msg.Key, Success: ok, NewValue: msg.NewValue, OriginalValue: msg.OriginalValue})
+		context.Respond(PutListCacheValueReply{Key: msg.Key, Success: ok, NewValue: msg.NewValue, OriginalValue: msg.OriginalValue})
 		if ok {
 			log.Printf("[ListCacheActor] Updated value %s to %s in list %s", msg.OriginalValue, msg.NewValue, msg.Key)
 		}
 		break
 	case *DeleteListCacheValueMessage:
 		ok, _ := a.Cache.TryDeleteValue(msg.Key, msg.Value)
-		context.Tell(msg.ReplyTo, DeleteListCacheValueReply{Key: msg.Key, DeletedValue: msg.Value, Success: ok})
+		context.Respond(DeleteListCacheValueReply{Key: msg.Key, DeletedValue: msg.Value, Success: ok})
 		if ok {
 			log.Printf("[ListCacheActor] Deleted value %s in list %s", msg.Value, msg.Key)
 		}

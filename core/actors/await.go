@@ -9,15 +9,14 @@ import (
 type ReplyProducer func(*sync.WaitGroup) *actor.PID
 
 // MessageProducer is a function which creates request message.
-type MessageProducer func(*actor.PID) interface{}
+type MessageProducer func() interface{}
 
 // Await is used to request reply from new actor created in the controller.
 func Await(pid *actor.PID, getReply ReplyProducer, getMessage MessageProducer) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	replyPid := getReply(&wg)
-	message := getMessage(replyPid)
-	pid.Tell(message)
+	pid.Request(getMessage(), replyPid)
 	wg.Wait()
 	replyPid.Stop()
 }

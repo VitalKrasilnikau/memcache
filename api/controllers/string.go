@@ -19,8 +19,8 @@ func GetStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 			func(wg *sync.WaitGroup) *actor.PID {
 				return createStringReplyActor(c, wg)
 			},
-			func(replyPid *actor.PID) interface{} {
-				return &act.GetStringCacheKeyMessage{Key: key, ReplyTo: replyPid}
+			func() interface{} {
+				return &act.GetStringCacheKeyMessage{Key: key}
 			})
 	}
 }
@@ -34,8 +34,8 @@ func DeleteStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 			func(wg *sync.WaitGroup) *actor.PID {
 				return createStringReplyActor(c, wg)
 			},
-			func(replyPid *actor.PID) interface{} {
-				return &act.DeleteStringCacheKeyMessage{Key: key, ReplyTo: replyPid}
+			func() interface{} {
+				return &act.DeleteStringCacheKeyMessage{Key: key}
 			})
 	}
 }
@@ -50,12 +50,11 @@ func PostStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 				func(wg *sync.WaitGroup) *actor.PID {
 					return createStringReplyActor(c, wg)
 				},
-				func(replyPid *actor.PID) interface{} {
+				func() interface{} {
 					return &act.PostStringCacheKeyMessage{
 						Key:     json.Key,
 						Value:   json.Value,
-						TTL:     api.ParseDuration(json.TTL),
-						ReplyTo: replyPid}
+						TTL:     api.ParseDuration(json.TTL)}
 				})
 		} else {
 			api.Bad(c, fmt.Sprintf("malformed request: %s", err.Error()))
@@ -74,12 +73,11 @@ func PutStringCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 				func(wg *sync.WaitGroup) *actor.PID {
 					return createStringReplyActor(c, wg)
 				},
-				func(replyPid *actor.PID) interface{} {
+				func() interface{} {
 					return &act.PutStringCacheKeyMessage{
 						Key:           key,
 						NewValue:      json.NewValue,
-						OriginalValue: json.OriginalValue,
-						ReplyTo:       replyPid}
+						OriginalValue: json.OriginalValue}
 				})
 		} else {
 			api.Bad(c, fmt.Sprintf("malformed request: %s", err.Error()))

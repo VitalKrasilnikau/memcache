@@ -19,8 +19,8 @@ func GetListCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 			func(wg *sync.WaitGroup) *actor.PID {
 				return createListReplyActor(c, wg)
 			},
-			func(replyPid *actor.PID) interface{} {
-				return &act.GetListCacheKeyMessage{Key: key, ReplyTo: replyPid}
+			func() interface{} {
+				return &act.GetListCacheKeyMessage{Key: key}
 			})
 	}
 }
@@ -34,8 +34,8 @@ func DeleteListCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 			func(wg *sync.WaitGroup) *actor.PID {
 				return createListReplyActor(c, wg)
 			},
-			func(replyPid *actor.PID) interface{} {
-				return &act.DeleteListCacheKeyMessage{Key: key, ReplyTo: replyPid}
+			func() interface{} {
+				return &act.DeleteListCacheKeyMessage{Key: key}
 			})
 	}
 }
@@ -50,12 +50,11 @@ func PostListCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 				func(wg *sync.WaitGroup) *actor.PID {
 					return createListReplyActor(c, wg)
 				},
-				func(replyPid *actor.PID) interface{} {
+				func() interface{} {
 					return &act.PostListCacheKeyMessage{
 						Key:     json.Key,
 						Values:  json.Values,
-						TTL:     api.ParseDuration(json.TTL),
-						ReplyTo: replyPid}
+						TTL:     api.ParseDuration(json.TTL)}
 				})
 		} else {
 			api.Bad(c, fmt.Sprintf("malformed request: %s", err.Error()))
@@ -75,8 +74,8 @@ func PutListCacheValueHandler(pid *actor.PID) func(*gin.Context) {
 				func(wg *sync.WaitGroup) *actor.PID {
 					return createListReplyActor(c, wg)
 				},
-				func(replyPid *actor.PID) interface{} {
-					return &act.PutListCacheValueMessage{Key: key, NewValue: json.Value, OriginalValue: value, ReplyTo: replyPid}
+				func() interface{} {
+					return &act.PutListCacheValueMessage{Key: key, NewValue: json.Value, OriginalValue: value}
 				})
 		} else {
 			api.Bad(c, fmt.Sprintf("malformed request: %s", err.Error()))
@@ -95,8 +94,8 @@ func PostListCacheValueHandler(pid *actor.PID) func(*gin.Context) {
 				func(wg *sync.WaitGroup) *actor.PID {
 					return createListReplyActor(c, wg)
 				},
-				func(replyPid *actor.PID) interface{} {
-					return &act.PostListCacheValueMessage{Key: key, NewValue: json.Value, ReplyTo: replyPid}
+				func() interface{} {
+					return &act.PostListCacheValueMessage{Key: key, NewValue: json.Value}
 				})
 		} else {
 			api.Bad(c, fmt.Sprintf("malformed request: %s", err.Error()))
@@ -114,8 +113,8 @@ func DeleteListCacheValueHandler(pid *actor.PID) func(*gin.Context) {
 			func(wg *sync.WaitGroup) *actor.PID {
 				return createListReplyActor(c, wg)
 			},
-			func(replyPid *actor.PID) interface{} {
-				return &act.DeleteListCacheValueMessage{Key: key, Value: value, ReplyTo: replyPid}
+			func() interface{} {
+				return &act.DeleteListCacheValueMessage{Key: key, Value: value}
 			})
 	}
 }

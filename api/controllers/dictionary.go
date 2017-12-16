@@ -20,8 +20,8 @@ func GetDictionaryCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 			func(wg *sync.WaitGroup) *actor.PID {
 				return createReplyActor(c, wg)
 			},
-			func(replyPid *actor.PID) interface{} {
-				return &act.GetDictionaryCacheKeyMessage{Key: key, ReplyTo: replyPid}
+			func() interface{} {
+				return &act.GetDictionaryCacheKeyMessage{Key: key}
 			})
 	}
 }
@@ -35,8 +35,8 @@ func DeleteDictionaryCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 			func(wg *sync.WaitGroup) *actor.PID {
 				return createReplyActor(c, wg)
 			},
-			func(replyPid *actor.PID) interface{} {
-				return &act.DeleteDictionaryCacheKeyMessage{Key: key, ReplyTo: replyPid}
+			func() interface{} {
+				return &act.DeleteDictionaryCacheKeyMessage{Key: key}
 			})
 	}
 }
@@ -51,12 +51,11 @@ func PostDictionaryCacheKeyHandler(pid *actor.PID) func(*gin.Context) {
 				func(wg *sync.WaitGroup) *actor.PID {
 					return createReplyActor(c, wg)
 				},
-				func(replyPid *actor.PID) interface{} {
+				func() interface{} {
 					return &act.PostDictionaryCacheKeyMessage{
 						Key:     json.Key,
 						Values:  fromDto(json.Values),
-						TTL:     api.ParseDuration(json.TTL),
-						ReplyTo: replyPid}
+						TTL:     api.ParseDuration(json.TTL)}
 				})
 		} else {
 			api.Bad(c, fmt.Sprintf("malformed request: %s", err.Error()))
@@ -76,13 +75,12 @@ func PutDictionaryCacheValueHandler(pid *actor.PID) func(*gin.Context) {
 				func(wg *sync.WaitGroup) *actor.PID {
 					return createReplyActor(c, wg)
 				},
-				func(replyPid *actor.PID) interface{} {
+				func() interface{} {
 					return &act.PutDictionaryCacheValueMessage{
 						Key:           key,
 						SubKey:        subkey,
 						NewValue:      json.Value,
-						OriginalValue: json.Original,
-						ReplyTo:       replyPid}
+						OriginalValue: json.Original}
 				})
 		} else {
 			api.Bad(c, fmt.Sprintf("malformed request: %s", err.Error()))
@@ -101,11 +99,10 @@ func PostDictionaryCacheValueHandler(pid *actor.PID) func(*gin.Context) {
 				func(wg *sync.WaitGroup) *actor.PID {
 					return createReplyActor(c, wg)
 				},
-				func(replyPid *actor.PID) interface{} {
+				func() interface{} {
 					return &act.PostDictionaryCacheValueMessage{
 						Key:      key,
-						NewValue: cache.KeyValue{Key: json.Value.Key, Value: json.Value.Value},
-						ReplyTo:  replyPid}
+						NewValue: cache.KeyValue{Key: json.Value.Key, Value: json.Value.Value}}
 				})
 		} else {
 			api.Bad(c, fmt.Sprintf("malformed request: %s", err.Error()))
@@ -123,8 +120,8 @@ func DeleteDictionaryCacheValueHandler(pid *actor.PID) func(*gin.Context) {
 			func(wg *sync.WaitGroup) *actor.PID {
 				return createReplyActor(c, wg)
 			},
-			func(replyPid *actor.PID) interface{} {
-				return &act.DeleteDictionaryCacheValueMessage{Key: key, SubKey: value, ReplyTo: replyPid}
+			func() interface{} {
+				return &act.DeleteDictionaryCacheValueMessage{Key: key, SubKey: value}
 			})
 	}
 }

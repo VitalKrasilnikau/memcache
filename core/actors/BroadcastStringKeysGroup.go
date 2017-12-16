@@ -34,8 +34,8 @@ func (g *BroadcastStringKeysGroup) Request() (GetCacheKeysReply, error) {
 						}
 					}))
 				},
-				func(replyPid *actor.PID) interface{} {
-					return &GetCacheKeysMessage{ReplyTo: replyPid}
+				func() interface{} {
+					return &GetCacheKeysMessage{}
 				})
 		}(pid)
 	}
