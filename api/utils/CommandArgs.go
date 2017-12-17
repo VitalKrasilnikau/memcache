@@ -45,6 +45,13 @@ func NewCommandArgs() CommandArgs {
 			return CommandArgs{Port: args[0], UsePersistence: false, ActorNumber: n}
 		}
 		return CommandArgs{Port: defaultPort, UsePersistence: true, ActorNumber: actorNumber}
+		case 4:
+		_, e := strconv.Atoi(args[0])
+		n, e2 := strconv.Atoi(args[2])
+		if e == nil && e2 == nil && args[1] == noDb && args[3] == "remote" {
+			return CommandArgs{Port: args[0], UsePersistence: false, ActorNumber: n, IsRemote: true}
+		}
+		return CommandArgs{Port: defaultPort, UsePersistence: true, ActorNumber: actorNumber}
 	default:
 		return CommandArgs{Port: defaultPort, UsePersistence: true, ActorNumber: actorNumber}
 	}

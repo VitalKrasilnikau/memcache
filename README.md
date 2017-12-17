@@ -41,6 +41,10 @@ At this moment not all endpoints can be tested from swagger UI due to some issue
 1. `$ go get ./...`
 1. `$ go build api/main.go`
 
+You can build the **memcache-node** binary if you want to run the cache in cluster mode:
+
+`go build -o memcache-node node/main.go`
+
 ## Run the project
 
 Run the following line to start memory cache server on port 8080, with 10 actors per cache and MongoDB persistence:
@@ -60,6 +64,14 @@ Run the following line to start memory cache server on custom port, with custom 
 Run the following line to start memory cache server on port 8080 and without MongoDB persistence:
 
 `$ ./main no-db`
+
+All the examples above run all the actors in the same process. If you want to run each actor as a node, you can use existing shell script to run the nodes first:
+
+`$ sudo /bin/bash ./start-nodes.sh`
+
+And then run the API with additional option:
+
+`$ ./main %PORT% no-db %ACTORS_NUMBER% remote`
 
 Press `CTRL-C` to stop the server.
 

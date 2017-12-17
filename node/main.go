@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"github.com/AsynkronIT/goconsole"
 	"github.com/AsynkronIT/protoactor-go/remote"
 	"github.com/VitalKrasilnikau/memcache/core/actors"
@@ -17,16 +18,20 @@ var (
 
 func main() {
 	flag.Parse()
-	remote.Start(fmt.Sprintf("127.0.0.1:%d", *port))
+	p := fmt.Sprintf("127.0.0.1:%d", *port)
+	remote.Start(p)
 	switch *nodeType {
 	case "string":
 		act.NewStringCacheActor("memcache", *nodeIndex, *usePersistence)
+		log.Printf("Started %s%d node on port %s\n", *nodeType, *nodeIndex, p)
 		console.ReadLine()
 	case "list":
 		act.NewListCacheActor("memcache", *nodeIndex, *usePersistence)
+		log.Printf("Started %s%d node on port %s\n", *nodeType, *nodeIndex, p)
 		console.ReadLine()
 	case "dictionary":
 		act.NewDictionaryCacheActor("memcache", *nodeIndex, *usePersistence)
+		log.Printf("Started %s%d node on port %s\n", *nodeType, *nodeIndex, p)
 		console.ReadLine()
 	}
 }
