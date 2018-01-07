@@ -11,7 +11,7 @@ func NewDictionaryCacheActorCluster(clusterName string, nodeNumber int, usePersi
 	var nodes = make([]*actor.PID, nodeNumber)
 	for i := 0; i < nodeNumber; i++ {
 		if isRemote {
-			nodes[i] = actor.NewPID(fmt.Sprintf("127.0.0.1:%d", i + 10000), fmt.Sprintf("strings%d", i))
+			nodes[i] = actor.NewPID(fmt.Sprintf("127.0.0.1:%d", i + 60000), fmt.Sprintf("strings%d", i))
 		} else {
 			nodes[i] = factory.CreateDictionaryCacheActor(clusterName, fmt.Sprintf("dictionaries%d", i), usePersistence)
 		}

@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"github.com/AsynkronIT/goconsole"
+	_ "github.com/AsynkronIT/goconsole"
 	"github.com/AsynkronIT/protoactor-go/remote"
 	"github.com/VitalKrasilnikau/memcache/core/actors"
 )
@@ -19,19 +19,28 @@ var (
 func main() {
 	flag.Parse()
 	p := fmt.Sprintf("127.0.0.1:%d", *port)
-	remote.Start(p)
+	started := false
 	switch *nodeType {
 	case "string":
+		remote.Start(p)
 		act.NewStringCacheActor("memcache", *nodeIndex, *usePersistence)
-		log.Printf("Started %s%d node on port %s\n", *nodeType, *nodeIndex, p)
-		console.ReadLine()
+		started = true
+		break
 	case "list":
+		remote.Start(p)
 		act.NewListCacheActor("memcache", *nodeIndex, *usePersistence)
-		log.Printf("Started %s%d node on port %s\n", *nodeType, *nodeIndex, p)
-		console.ReadLine()
+		started = true
+		break
 	case "dictionary":
+		remote.Start(p)
 		act.NewDictionaryCacheActor("memcache", *nodeIndex, *usePersistence)
+		started = true
+		break
+	}
+	if started {
 		log.Printf("Started %s%d node on port %s\n", *nodeType, *nodeIndex, p)
-		console.ReadLine()
+		for {} // TODO: Support graceful shutdown
+		remote.Shutdown(true)
+		log.Printf("Stopped %s%d node on port %s\n", *nodeType, *nodeIndex, p)
 	}
 }

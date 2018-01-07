@@ -11,7 +11,7 @@ func NewStringCacheActorCluster(clusterName string, nodeNumber int, usePersisten
 	var nodes = make([]*actor.PID, nodeNumber)
 	for i := 0; i < nodeNumber; i++ {
 		if isRemote {
-			nodes[i] = actor.NewPID(fmt.Sprintf("127.0.0.1:%d", i + 9000), fmt.Sprintf("strings%d", i))
+			nodes[i] = actor.NewPID(fmt.Sprintf("127.0.0.1:%d", i + 59000), fmt.Sprintf("strings%d", i))
 		} else {
 			nodes[i] = factory.CreateStringCacheActor(clusterName, fmt.Sprintf("strings%d", i), usePersistence)
 		}

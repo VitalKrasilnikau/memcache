@@ -4,6 +4,7 @@ import (
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/VitalKrasilnikau/memcache/core/cache"
 	"github.com/VitalKrasilnikau/memcache/core/repository"
+	"github.com/VitalKrasilnikau/memcache/core/messages"
 	"log"
 	"time"
 )
@@ -141,6 +142,8 @@ type DictionaryCacheActor struct {
 // Receive is DictionaryCacheActor messages handler.
 func (a *DictionaryCacheActor) Receive(context actor.Context) {
 	switch msg := context.Message().(type) {
+	
+	// Local messaging
 	case *GetDictionaryCacheKeyMessage:
 		ok, v := a.Cache.TryGet(msg.Key)
 		context.Respond(GetDictionaryCacheKeyReply{Key: msg.Key, Values: v, Success: ok})
@@ -179,6 +182,47 @@ func (a *DictionaryCacheActor) Receive(context actor.Context) {
 			log.Printf("[DictionaryCacheActor] Deleted subkey %s in dictionary %s", msg.SubKey, msg.Key)
 		}
 		break
+
+  // gRPC messaging
+	case *messages.GetDictionaryCacheKeyMessage:
+		ok, v := a.Cache.TryGet(msg.Key)
+		context.Respond(messages.GetDictionaryCacheKeyReply{Key: msg.Key, Values: v, Success: ok})
+		break
+	case *messages.DeleteDictionaryCacheKeyMessage:
+		ok, v := a.Cache.TryDelete(msg.Key)
+		context.Respond(messages.DeleteDictionaryCacheKeyReply{Key: msg.Key, DeletedValues: v, Success: ok})
+		log.Printf("[DictionaryCacheActor] Deleted %s", msg.Key)
+		break
+	/*case *messages.GetCacheKeysMessage:
+		context.Respond(messages.GetCacheKeysReply{Keys: a.Cache.GetKeys()})
+		break*/
+	case *messages.PostDictionaryCacheKeyMessage:
+		ok := a.Cache.TryAdd(msg.Key, msg.Values, msg.TTL)
+		context.Respond(messages.PostDictionaryCacheKeyReply{Key: msg.Key, Success: ok})
+		log.Printf("[DictionaryCacheActor] Created %s [%v]", msg.Key, msg.TTL)
+		break
+	case *messages.PostDictionaryCacheValueMessage:
+		ok, _ := a.Cache.TryAddValue(msg.Key, msg.NewValue)
+		context.Respond(messages.PostDictionaryCacheValueReply{Key: msg.Key, Success: ok, AddedValue: msg.NewValue})
+		if ok {
+			log.Printf("[DictionaryCacheActor] Added value %s to list %s", msg.NewValue, msg.Key)
+		}
+		break
+	case *messages.PutDictionaryCacheValueMessage:
+		ok, _ := a.Cache.TryUpdateValue(msg.Key, msg.SubKey, msg.NewValue, msg.OriginalValue)
+		context.Respond(messages.PutDictionaryCacheValueReply{Key: msg.Key, Success: ok, NewValue: msg.NewValue, OriginalValue: msg.OriginalValue, SubKey: msg.SubKey})
+		if ok {
+			log.Printf("[DictionaryCacheActor] Updated value %s to %s in list %s", msg.OriginalValue, msg.NewValue, msg.Key)
+		}
+		break
+	case *messages.DeleteDictionaryCacheValueMessage:
+		ok, del := a.Cache.TryDeleteValue(msg.Key, msg.SubKey)
+		context.Respond(messages.DeleteDictionaryCacheValueReply{Key: msg.Key, DeletedValue: del, Success: ok, SubKey: msg.SubKey})
+		if ok {
+			log.Printf("[DictionaryCacheActor] Deleted subkey %s in dictionary %s", msg.SubKey, msg.Key)
+		}
+		break
+
 	case *actor.Stopping:
 		a.persistSnapshot()
 		break
