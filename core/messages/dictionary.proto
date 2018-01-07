@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package messages;
+
+import "google/protobuf/duration.proto";
+import "KeyValue.proto";
+
+message GetDictionaryCacheKeyMessage {
+	string Key = 1;
+}
+
+message GetDictionaryCacheKeyReply {
+	string Key = 1;
+	repeated KeyValue Values = 2;
+	bool Success = 3;
+}
+
+message DeleteDictionaryCacheKeyMessage {
+	string Key = 1;
+}
+
+message DeleteDictionaryCacheKeyReply {
+	string Key = 1;
+	repeated KeyValue DeletedValues = 2;
+	bool Success = 3;
+}
+
+message PostDictionaryCacheKeyMessage {
+	string Key = 1;
+	repeated KeyValue Values = 2;
+	google.protobuf.Duration TTL = 3;
+}
+
+message PostDictionaryCacheKeyReply {
+	string Key = 1;
+	bool Success = 2;
+}
+
+message PutDictionaryCacheValueMessage {
+	string Key = 1;
+	string SubKey = 2;
+	string NewValue = 3;
+	string OriginalValue = 4;
+}
+
+message PutDictionaryCacheValueReply {
+	string Key = 1;
+	string SubKey = 2;
+	bool Success = 3;
+	string NewValue = 4;
+	string OriginalValue = 5;
+}
+
+message DeleteDictionaryCacheValueMessage {
+	string Key = 1;
+	string SubKey = 2;
+}
+
+message DeleteDictionaryCacheValueReply {
+	string Key = 1;
+	string SubKey = 2;
+	KeyValue DeletedValue = 3;
+	bool Success = 4;
+}
+
+message PostDictionaryCacheValueMessage {
+	string Key = 1;
+	KeyValue NewValue = 2;
+}
+
+message PostDictionaryCacheValueReply {
+	string Key = 1;
+	bool Success = 2;
+	KeyValue AddedValue = 3;
+}

@@ -11,7 +11,7 @@ func NewListCacheActorCluster(clusterName string, nodeNumber int, usePersistence
 	var nodes = make([]*actor.PID, nodeNumber)
 	for i := 0; i < nodeNumber; i++ {
 		if isRemote {
-			nodes[i] = actor.NewPID(fmt.Sprintf("127.0.0.1:%d", i + 1), fmt.Sprintf("lists%d", i))
+			nodes[i] = actor.NewPID(fmt.Sprintf("127.0.0.1:%d", i + 8000), fmt.Sprintf("lists%d", i))
 		} else {
 			nodes[i] = factory.CreateListCacheActor(clusterName, fmt.Sprintf("lists%d", i), usePersistence)
 		}

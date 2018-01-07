@@ -297,7 +297,7 @@ func DeleteDictionaryCacheValueHandler(pid *actor.PID) func(*gin.Context) {
 func main() {
 	args := api.NewCommandArgs()
 	if args.IsRemote {
-		remote.Start("127.0.0.1:0")
+		remote.Start("127.0.0.1:7000")
 	}
 	pid, bpid, cpid := act.NewStringCacheActorCluster("memcache", args.ActorNumber, args.UsePersistence, args.IsRemote)
 	lpid, lbpid, lcpid := act.NewListCacheActorCluster("memcache", args.ActorNumber, args.UsePersistence, args.IsRemote)
